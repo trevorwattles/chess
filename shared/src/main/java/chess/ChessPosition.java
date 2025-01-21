@@ -7,9 +7,12 @@ package chess;
  * signature of the existing methods.
  */
 public class ChessPosition {
-    private int row;
-    private int col;
+    private final int row;
+    private final int col;
     public ChessPosition(int row, int col) {
+        if (row < 1 || row > 8 || col < 1 || col > 8) {
+            throw new IllegalArgumentException("Invalid chess position. Rows and columns must be between 1 and 8.");
+        }
         this.row = row;
         this.col = col;
     }
