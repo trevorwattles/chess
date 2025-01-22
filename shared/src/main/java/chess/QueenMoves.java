@@ -2,7 +2,6 @@ package chess;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import static chess.ChessPiece.PieceType.BISHOP;
 
 public class QueenMoves implements PieceMoves {
     private Collection<ChessMove> moves;
@@ -11,10 +10,14 @@ public class QueenMoves implements PieceMoves {
         Collection<ChessMove> moves = new ArrayList<>();
 
         int[][] directions = {
+                {1, 0},
                 {1, 1},
-                {1, -1},
+                {0, 1},
                 {-1, 1},
-                {-1, -1}
+                {-1, 0},
+                {-1, -1},
+                {0, -1},
+                {1, -1}
         };
 
         for (int[] direction : directions) {
@@ -25,7 +28,7 @@ public class QueenMoves implements PieceMoves {
                 row += direction[0];
                 col += direction[1];
 
-                if (!board.isInBounds(row,col)) {
+                if (row > 8 || col > 8 || row < 1 || col < 1) {
                     break;
                 }
 
