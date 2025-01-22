@@ -2,7 +2,6 @@ package chess;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import static chess.ChessPiece.PieceType.BISHOP;
 
 public class RookMoves implements PieceMoves {
     private Collection<ChessMove> moves;
@@ -11,10 +10,10 @@ public class RookMoves implements PieceMoves {
         Collection<ChessMove> moves = new ArrayList<>();
 
         int[][] directions = {
-                {1, 1},
-                {1, -1},
-                {-1, 1},
-                {-1, -1}
+                {0, 1},
+                {1, 0},
+                {0, -1},
+                {-1, 0}
         };
 
         for (int[] direction : directions) {
@@ -25,7 +24,7 @@ public class RookMoves implements PieceMoves {
                 row += direction[0];
                 col += direction[1];
 
-                if (!board.isInBounds(row,col)) {
+                if (row > 8 || col > 8 || row < 1 || col < 1) {
                     break;
                 }
 
