@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import static chess.ChessPiece.PieceType.BISHOP;
 
-public class BishopMoves implements PieceMoves {
+public class RookMoves implements PieceMoves {
     private Collection<ChessMove> moves;
     @Override
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
@@ -25,7 +25,7 @@ public class BishopMoves implements PieceMoves {
                 row += direction[0];
                 col += direction[1];
 
-                if (row > 8 || col > 8 || row < 1 || col < 1) {
+                if (!board.isInBounds(row,col)) {
                     break;
                 }
 
