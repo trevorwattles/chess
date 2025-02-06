@@ -1,6 +1,9 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -50,7 +53,28 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        throw new RuntimeException("Not implemented");
+        ChessPiece currPiece = board.getPiece(startPosition);
+        if (currPiece == null) {
+            return Collections.emptyList(); // No piece at the position, return an empty list
+        }
+
+        List<ChessMove> validMoves = new ArrayList<>();
+
+        // Iterate over all possible moves for the piece
+        for (ChessMove move : currPiece.pieceMoves(board, startPosition)) {
+            ChessPiece tempPiece = board.getPiece(move.getEndPosition());
+            board.addPiece(startPosition, null);
+            board.addPiece(move.getEndPosition(), currPiece);
+
+            // If the move does not leave the king in check, it is valid
+            if (!isInCheck(currPiece.getTeamColor())) {
+                validMoves.add(move);
+            }
+            board.addPiece(move.getEndPosition(), tempPiece);
+            board.addPiece(startPosition, currPiece);
+        }
+
+        return validMoves;
     }
 
     /**
@@ -63,18 +87,18 @@ public class ChessGame {
         throw new RuntimeException("Not implemented");
     }
     public ChessPosition findKing(TeamColor teamColor) {
-        for (int y = 1; y <= 8; y++) { // Iterate over rows
-            for (int x = 1; x <= 8; x++) { // Iterate over columns
+        for (int y = 1; y <= 8; y++) {
+            for (int x = 1; x <= 8; x++) {
                 ChessPiece currPiece = board.getPiece(new ChessPosition(y, x));
 
                 if (currPiece != null &&
                         currPiece.getTeamColor() == teamColor &&
                         currPiece.getPieceType() == ChessPiece.PieceType.KING) {
-                    return new ChessPosition(y, x); // Found the king
+                    return new ChessPosition(y, x);
                 }
             }
         }
-        return null; // King not found (should never happen in a valid game)
+        return null;
     }
 
     /**
@@ -90,17 +114,19 @@ public class ChessGame {
         }
         for (int y = 1; y <= 8; y++) {
             for (int x = 1; x <= 8; x++) {
-                ChessPiece currPiece = board.getPiece(new ChessPosition(y, x));
-                if (currPiece != null &&
-                        currPiece.getTeamColor() != teamColor &&
-                        currPiece.getPieceType() != ChessPiece.PieceType.KING &&
-                        currPiece.pieceMoves(board, kingPosition).stream().anyMatch(move -> move.getEndPosition().equals(kingPosition))) {
-                    return true;
+                ChessPiece opponentPiece = board.getPiece(new ChessPosition(y, x));
+                if (opponentPiece != null && opponentPiece.getTeamColor() != teamColor) {
+                    for (ChessMove move : opponentPiece.pieceMoves(board, new ChessPosition(y, x))) {
+                        if (move.getEndPosition().equals(kingPosition)) {
+                            return true;
+                        }
+                    }
                 }
             }
         }
         return false;
     }
+
 
     /**
      * Determines if the given team is in checkmate
