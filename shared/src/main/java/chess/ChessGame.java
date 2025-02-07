@@ -52,7 +52,7 @@ public class ChessGame {
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         ChessPiece currPiece = board.getPiece(startPosition);
         if (currPiece == null) {
-            return Collections.emptyList(); // No piece at the position, return an empty list
+            return Collections.emptyList();
         }
 
         List<ChessMove> validMoves = new ArrayList<>();
