@@ -57,13 +57,11 @@ public class ChessGame {
 
         List<ChessMove> validMoves = new ArrayList<>();
 
-        // Iterate over all possible moves for the piece
         for (ChessMove move : currPiece.pieceMoves(board, startPosition)) {
             ChessPiece tempPiece = board.getPiece(move.getEndPosition());
             board.addPiece(startPosition, null);
             board.addPiece(move.getEndPosition(), currPiece);
 
-            // If the move does not leave the king in check, it is valid
             if (!isInCheck(currPiece.getTeamColor())) {
                 validMoves.add(move);
             }
