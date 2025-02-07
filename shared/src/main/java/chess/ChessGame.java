@@ -182,17 +182,20 @@ public class ChessGame {
      */
     public boolean isInStalemate(TeamColor teamColor) {
         //check to see if player has no valid moves for any of its pieces
+        if (isInCheckmate(teamColor)) {
+            return false;
+        }
         for (int y = 1; y <= 8; y++) {
             for (int x = 1; x <= 8; x++) {
                 ChessPiece currPiece = board.getPiece(new ChessPosition(y, x));
                 if (currPiece != null && currPiece.getTeamColor() == teamColor) {
-                    if(validMoves(new ChessPosition(y, x)) != null) {
+                    if(validMoves(new ChessPosition(y, x)).size() != 0) {
                         return false;
                     }
                 }
             }
         }
-        return true;
+       return true;
     }
 
     /**
