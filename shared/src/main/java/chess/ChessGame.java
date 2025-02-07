@@ -179,7 +179,7 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        //check to see if player has no valid moves for any of its pieces
+        //check to see if player has no valid moves for any of its pieces thus leading to stalemate
         if (isInCheckmate(teamColor)) {
             return false;
         }
