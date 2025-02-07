@@ -1,9 +1,6 @@
 package chess;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -159,8 +156,22 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        return isInCheck(teamColor) && isInStalemate(teamColor);
+        if (!isInCheck(teamColor)) {
+            return false;
+        }
+        for (int y = 1; y <= 8; y++) {
+            for (int x = 1; x <= 8; x++) {
+                ChessPiece currPiece = board.getPiece(new ChessPosition(y, x));
+                if (currPiece != null && currPiece.getTeamColor() == teamColor) {
+                    if (!validMoves(new ChessPosition(y, x)).isEmpty()) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
+
 
     /**
      * Determines if the given team is in stalemate, which here is defined as having
@@ -170,7 +181,18 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        //check to see if player has no valid moves for any of its pieces
+        for (int y = 1; y <= 8; y++) {
+            for (int x = 1; x <= 8; x++) {
+                ChessPiece currPiece = board.getPiece(new ChessPosition(y, x));
+                if (currPiece != null && currPiece.getTeamColor() == teamColor) {
+                    if(validMoves(new ChessPosition(y, x)) != null) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     /**
@@ -181,7 +203,6 @@ public class ChessGame {
     public void setBoard(ChessBoard board) {
         this.board = board;
     }
-
     /**
      * Gets the current chessboard
      *
@@ -189,5 +210,28 @@ public class ChessGame {
      */
     public ChessBoard getBoard() {
         return board;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ChessGame chessGame = (ChessGame) o;
+        return gameOver == chessGame.gameOver && teamTurn == chessGame.teamTurn && Objects.equals(board, chessGame.board);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(teamTurn, board, gameOver);
+    }
+
+    @Override
+    public String toString() {
+        return "ChessGame{" +
+                "teamTurn=" + teamTurn +
+                ", board=" + board +
+                ", gameOver=" + gameOver +
+                '}';
     }
 }
