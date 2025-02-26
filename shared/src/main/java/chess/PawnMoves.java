@@ -49,10 +49,14 @@ public class PawnMoves implements PieceMoves {
             if (newRow >= 1 && newRow <= 8 && newCol >= 1 && newCol <= 8) {
                 ChessPosition capturePosition = new ChessPosition(newRow, newCol);
                 ChessPiece targetPiece = board.getPiece(capturePosition);
-                if ((targetPiece != null && targetPiece.getTeamColor() != myPiece.getTeamColor()) && (myPiece.getTeamColor() == WHITE && capturePosition.getRow() != 8 || myPiece.getTeamColor() == BLACK && capturePosition.getRow() != 1) ) {
+                if ((targetPiece != null && targetPiece.getTeamColor() != myPiece.getTeamColor()) &&
+                        (myPiece.getTeamColor() == WHITE && capturePosition.getRow() != 8 ||
+                                myPiece.getTeamColor() == BLACK && capturePosition.getRow() != 1)){
                     moves.add(new ChessMove(myPosition, capturePosition, null));
                 }
-                if ((targetPiece != null && targetPiece.getTeamColor() != myPiece.getTeamColor()) && ((myPiece.getTeamColor() == WHITE && capturePosition.getRow() == 8 || myPiece.getTeamColor() == BLACK && capturePosition.getRow() == 1))) {
+                if ((targetPiece != null && targetPiece.getTeamColor() != myPiece.getTeamColor()) &&
+                        ((myPiece.getTeamColor() == WHITE && capturePosition.getRow() == 8 ||
+                                myPiece.getTeamColor() == BLACK && capturePosition.getRow() == 1))) {
                     moves.add(new ChessMove(myPosition, capturePosition, ChessPiece.PieceType.QUEEN));
                     moves.add(new ChessMove(myPosition, capturePosition, ChessPiece.PieceType.BISHOP));
                     moves.add(new ChessMove(myPosition, capturePosition, ChessPiece.PieceType.ROOK));
