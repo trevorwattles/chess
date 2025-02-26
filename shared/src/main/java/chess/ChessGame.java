@@ -128,16 +128,20 @@ public class ChessGame {
      */
     public boolean isInCheck(TeamColor teamColor) {
         ChessPosition kingPosition = findKing(teamColor);
-        if (kingPosition == null) return false;  // Early return
+        if (kingPosition == null) {
+            return false;
+        }
 
         for (int y = 1; y <= 8; y++) {
             for (int x = 1; x <= 8; x++) {
                 ChessPiece opponentPiece = board.getPiece(new ChessPosition(y, x));
-                if (opponentPiece == null || opponentPiece.getTeamColor() == teamColor) continue; // Skip irrelevant pieces
+                if (opponentPiece == null || opponentPiece.getTeamColor() == teamColor) {continue;} // Skip irrelevant pieces
 
                 Collection<ChessMove> possibleMoves = opponentPiece.pieceMoves(board, new ChessPosition(y, x)); // Extracted outside
                 for (ChessMove move : possibleMoves) {
-                    if (move.getEndPosition().equals(kingPosition)) return true;
+                    if (move.getEndPosition().equals(kingPosition)) {
+                        return true;
+                    }
                 }
             }
         }
