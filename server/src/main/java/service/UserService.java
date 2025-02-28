@@ -39,8 +39,33 @@ public class UserService {
         return authData;
     }
     public AuthData loginUser(UserData userData) throws RequestException {
-        return null;
+        if (userData == null || userData.username() == null || userData.password() == null ||
+                userData.username().isBlank() || userData.password().isBlank()) {
+            throw new RequestException("Error: bad request");
+        }
+
+        System.out.println("Attempting login for user: " + userData.username());
+
+        UserData existingUser = userDAO.getUser(userData.username());
+
+        if (existingUser == null) {
+            throw new RequestException("Error: unauthorized");
+        }
+
+        if (!existingUser.password().equals(userData.password())) {
+            throw new RequestException("Error: unauthorized");
+        }
+
+        String authToken = UUID.randomUUID().toString();
+        AuthData authData = new AuthData(authToken, userData.username());
+
+        authDAO.createAuth(authData);
+
+        System.out.println("Login successful: " + userData.username() + " | AuthToken: " + authToken);
+
+        return authData;
     }
+
     public void logoutUser(String authToken) throws DataAccessException {    }
     public AuthData getAuthData(String authToken) throws DataAccessException {
         return null;

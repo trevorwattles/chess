@@ -1,28 +1,31 @@
 package dataaccess;
 
 import model.UserData;
-
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MemoryUserDAO implements UserDAO {
-    private final HashSet<UserData> database = new HashSet<>();
+    private final Map<String, UserData> users = new HashMap<>();
+
     @Override
     public void clear() {
-        database.clear();
+        users.clear();
     }
 
     @Override
-    public void createUser(UserData user) {
-        database.add(user);
-    }
-
-    @Override
-    public UserData getUser(String username) throws DataAccessException {
-        for (UserData user : database) {
-            if (user.username().equals(username)) {
-                return user;
-            }
+    public void createUser(UserData user) throws DataAccessException {
+        if (user == null || user.username() == null) {
+            throw new DataAccessException("Cannot insert null user");
         }
-        throw new DataAccessException("User: " + username + " not found");
+        if (users.containsKey(user.username())) {
+            throw new DataAccessException("User already exists");
+        }
+        users.put(user.username(), user);
     }
+
+    @Override
+    public UserData getUser(String username) {
+        return users.getOrDefault(username, null); // Return null if user not found
+    }
+
 }
