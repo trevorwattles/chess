@@ -88,8 +88,21 @@ public class UserService {
     }
 
     public AuthData getAuthData(String authToken) throws DataAccessException {
-        return null;
+        if (authToken == null || authToken.isBlank()) {
+            throw new DataAccessException("Error: unauthorized");
+        }
+
+        System.out.println("Fetching AuthData for authToken: " + authToken);
+
+        AuthData authData = authDAO.getAuth(authToken);
+
+        if (authData == null) {
+            throw new DataAccessException("Error: unauthorized");
+        }
+
+        return authData;
     }
+
     public void clear(){
         userDAO.clear();
         authDAO.clear();

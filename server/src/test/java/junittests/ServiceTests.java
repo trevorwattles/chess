@@ -156,4 +156,57 @@ public class ServiceTests {
         });
         assertEquals("Error: unauthorized", thrown2.getMessage());
     }
+    @Test
+    public void testGetAuthData_Success() throws RequestException, DataAccessException {
+        UserData newUser = new UserData("testUser", "password123", "test@example.com");
+        AuthData authData = userService.createUser(newUser);
+        AuthData retrievedAuthData = assertDoesNotThrow(() -> userService.getAuthData(authData.authToken()));
+
+        assertNotNull(retrievedAuthData);
+        assertEquals("testUser", retrievedAuthData.username());
+        assertEquals(authData.authToken(), retrievedAuthData.authToken());
+    }
+
+    @Test
+    public void testGetAuthData_Fail_InvalidAuthToken() {
+        DataAccessException thrown = assertThrows(DataAccessException.class, () -> {
+            userService.getAuthData("invalidAuthToken");
+        });
+
+        assertEquals("Error: unauthorized", thrown.getMessage());
+    }
+
+    @Test
+    public void testGetAuthData_Fail_NullOrEmptyAuthToken() {
+        DataAccessException thrown1 = assertThrows(DataAccessException.class, () -> {
+            userService.getAuthData(null);
+        });
+        assertEquals("Error: unauthorized", thrown1.getMessage());
+
+        DataAccessException thrown2 = assertThrows(DataAccessException.class, () -> {
+            userService.getAuthData("");
+        });
+        assertEquals("Error: unauthorized", thrown2.getMessage());
+    }
+    @Test
+    public void testClear_Success() throws RequestException, DataAccessException {
+        UserData newUser = new UserData("testUser", "password123", "test@example.com");
+        AuthData authData = userService.createUser(newUser);
+
+        assertNotNull(userService.getAuthData(authData.authToken()));
+
+        userService.clear();
+
+        DataAccessException thrown1 = assertThrows(DataAccessException.class, () -> {
+            userService.getAuthData(authData.authToken());
+        });
+        assertEquals("Error: unauthorized", thrown1.getMessage());
+
+        RequestException thrown2 = assertThrows(RequestException.class, () -> {
+            userService.loginUser(new UserData("testUser", "password123", null));
+        });
+        assertEquals("Error: unauthorized", thrown2.getMessage());
+    }
+
+
 }
