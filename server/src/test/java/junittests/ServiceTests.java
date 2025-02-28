@@ -73,5 +73,60 @@ public class ServiceTests {
 
         assertEquals("Error: already taken", thrown.getMessage());
     }
+    @Test
+    public void testLoginUser_Success() throws RequestException, DataAccessException {
+        // Given a valid registered user
+        UserData newUser = new UserData("testUser", "password123", "test@example.com");
+        userService.createUser(newUser);
 
+        // When logging in with correct credentials
+        AuthData authData = userService.loginUser(new UserData("testUser", "password123", null));
+
+        // Then it should return valid auth data
+        assertNotNull(authData);
+        assertEquals("testUser", authData.username());
+        assertNotNull(authData.authToken());
+        assertFalse(authData.authToken().isEmpty());
+    }
+
+    @Test
+    public void testLoginUser_Fail_UserNotFound() {
+        // When attempting to login with a non-existent user
+        RequestException thrown = assertThrows(RequestException.class, () -> {
+            userService.loginUser(new UserData("nonExistentUser", "password123", null));
+        });
+
+        // Then it should return "Error: unauthorized"
+        assertEquals("Error: unauthorized", thrown.getMessage());
+    }
+
+    @Test
+    public void testLoginUser_Fail_IncorrectPassword() throws RequestException, DataAccessException {
+        // Given a valid registered user
+        UserData newUser = new UserData("testUser", "correctPassword", "test@example.com");
+        userService.createUser(newUser);
+
+        // When attempting to login with an incorrect password
+        RequestException thrown = assertThrows(RequestException.class, () -> {
+            userService.loginUser(new UserData("testUser", "wrongPassword", null));
+        });
+
+        // Then it should return "Error: unauthorized"
+        assertEquals("Error: unauthorized", thrown.getMessage());
+    }
+
+    @Test
+    public void testLoginUser_Fail_MissingFields() {
+        // When missing a username
+        RequestException thrown1 = assertThrows(RequestException.class, () -> {
+            userService.loginUser(new UserData(null, "password123", null));
+        });
+        assertEquals("Error: bad request", thrown1.getMessage());
+
+        // When missing a password
+        RequestException thrown2 = assertThrows(RequestException.class, () -> {
+            userService.loginUser(new UserData("testUser", null, null));
+        });
+        assertEquals("Error: bad request", thrown2.getMessage());
+    }
 }
