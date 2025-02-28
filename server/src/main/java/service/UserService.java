@@ -66,7 +66,27 @@ public class UserService {
         return authData;
     }
 
-    public void logoutUser(String authToken) throws DataAccessException {    }
+    public void logoutUser(String authToken) throws DataAccessException {
+        if (authToken == null || authToken.isBlank()) {
+            throw new DataAccessException("Error: unauthorized");
+        }
+
+        System.out.println("Attempting logout for authToken: " + authToken);
+
+        AuthData authData = authDAO.getAuth(authToken);
+        if (authData == null) {
+            throw new DataAccessException("Error: unauthorized");
+        }
+
+        authDAO.deleteAuth(authData);
+
+        if (authDAO.getAuth(authToken) != null) {
+            throw new DataAccessException("Error: unauthorized");
+        }
+
+        System.out.println("Logout successful for user: " + authData.username());
+    }
+
     public AuthData getAuthData(String authToken) throws DataAccessException {
         return null;
     }

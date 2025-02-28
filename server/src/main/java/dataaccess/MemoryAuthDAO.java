@@ -21,13 +21,13 @@ public class MemoryAuthDAO implements AuthDAO {
 
 
     @Override
-    public AuthData getAuth(String authToken) throws DataAccessException {
+    public AuthData getAuth(String authToken){
         for (AuthData auth : database) {
             if(Objects.equals(auth.authToken(), authToken)) {
                 return auth;
             }
         }
-        throw new DataAccessException("Auth token: " + authToken + "not found");
+        return null;
     }
 
     @Override
