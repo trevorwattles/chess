@@ -40,8 +40,22 @@ public class GameService {
     }
 
 
-    public void updateGame(String authToken, GameData gameData)  {
+    public void updateGame(String authToken, GameData gameData) throws DataAccessException {
+        AuthData authData = authDAO.getAuth(authToken);
+        if (authData == null) {
+            throw new DataAccessException("Error: unauthorized");
+        }
 
+        if (gameData == null || gameData.gameID() <= 0) {
+            throw new DataAccessException("Error: invalid game data");
+        }
+
+        GameData existingGame = gameDAO.getGame(gameData.gameID());
+        if (existingGame == null) {
+            throw new DataAccessException("Error: game not found");
+        }
+
+        gameDAO.updateGame(gameData);
     }
 
     public int createGame(String authToken, String gameName){
