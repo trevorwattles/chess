@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import service.GameService;
 
 import java.util.HashSet;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -214,6 +215,222 @@ public class GameServiceTests {
 
         assertEquals("Error: invalid game data", thrown.getMessage());
     }
+    @Test
+    public void testCreateGame_Success() throws DataAccessException {
+        String validToken = "validToken123";
+        String username = "testUser";
+        authDAO.createAuth(new AuthData(validToken, username));
+
+        String gameName = "New Chess Game";
+        int gameID = gameService.createGame(validToken, gameName);
+
+        GameData createdGame = gameDAO.getGame(gameID);
+
+        assertNotNull(createdGame);
+        assertEquals(gameID, createdGame.gameID());
+        assertEquals(gameName, createdGame.gameName());
+        assertNull(createdGame.whiteUsername());
+        assertNull(createdGame.blackUsername());
+    }
+
+    @Test
+    public void testCreateGame_Fail_InvalidAuthToken() {
+        String invalidToken = "invalidToken";
+        String gameName = "Invalid Game";
+
+        DataAccessException thrown = assertThrows(DataAccessException.class, () -> {
+            gameService.createGame(invalidToken, gameName);
+        });
+
+        assertEquals("Error: unauthorized", thrown.getMessage());
+    }
+
+    @Test
+    public void testCreateGame_Fail_NullGameName() throws DataAccessException {
+        String validToken = "validToken123";
+        String username = "testUser";
+        authDAO.createAuth(new AuthData(validToken, username));
+
+        DataAccessException thrown = assertThrows(DataAccessException.class, () -> {
+            gameService.createGame(validToken, null);
+        });
+
+        assertEquals("Error: invalid game name", thrown.getMessage());
+    }
+
+    @Test
+    public void testCreateGame_Fail_EmptyGameName() throws DataAccessException {
+        String validToken = "validToken123";
+        String username = "testUser";
+        authDAO.createAuth(new AuthData(validToken, username));
+
+        DataAccessException thrown = assertThrows(DataAccessException.class, () -> {
+            gameService.createGame(validToken, "  "); // Empty or whitespace name
+        });
+
+        assertEquals("Error: invalid game name", thrown.getMessage());
+    }
+
+    @Test
+    public void testCreateGame_Fail_DuplicateGameNamesAllowed() throws DataAccessException {
+        String validToken = "validToken123";
+        String username = "testUser";
+        authDAO.createAuth(new AuthData(validToken, username));
+
+        String gameName = "Chess Match";
+
+        // Create first game
+        int gameID1 = gameService.createGame(validToken, gameName);
+        System.out.println("Game 1 created with ID: " + gameID1);
+
+        // Create second game with the same name
+        int gameID2 = gameService.createGame(validToken, gameName);
+        System.out.println("Game 2 created with ID: " + gameID2);
+
+        // Fetch and print all stored games
+        List<GameData> allGames = gameDAO.listGames();
+        System.out.println("Total games stored: " + allGames.size());
+        for (GameData game : allGames) {
+            System.out.println("Game ID: " + game.gameID() + ", Name: " + game.gameName());
+        }
+
+        assertNotEquals(gameID1, gameID2, "Game IDs should be unique even if the names are the same");
+    }
+    @Test
+    public void testJoinGame_Success_White() throws DataAccessException {
+        String validToken = "validToken123";
+        String username = "testUser";
+        authDAO.createAuth(new AuthData(validToken, username));
+
+        String gameName = "Chess Match";
+        int gameID = gameService.createGame(validToken, gameName);
+
+        boolean joined = gameService.joinGame(validToken, gameID, "WHITE");
+
+        GameData updatedGame = gameDAO.getGame(gameID);
+
+        assertTrue(joined);
+        assertNotNull(updatedGame);
+        assertEquals(username, updatedGame.whiteUsername());
+        assertNull(updatedGame.blackUsername());
+    }
+
+    @Test
+    public void testJoinGame_Success_Black() throws DataAccessException {
+        String validToken = "validToken456";
+        String username = "testUser2";
+        authDAO.createAuth(new AuthData(validToken, username));
+
+        String gameName = "Chess Game 2";
+        int gameID = gameService.createGame(validToken, gameName);
+
+        boolean joined = gameService.joinGame(validToken, gameID, "BLACK");
+
+        GameData updatedGame = gameDAO.getGame(gameID);
+
+        assertTrue(joined);
+        assertNotNull(updatedGame);
+        assertEquals(username, updatedGame.blackUsername());
+        assertNull(updatedGame.whiteUsername());
+    }
+
+    @Test
+    public void testJoinGame_Fail_InvalidAuthToken() {
+        String invalidToken = "invalidToken";
+        int gameID = 1;
+
+        DataAccessException thrown = assertThrows(DataAccessException.class, () -> {
+            gameService.joinGame(invalidToken, gameID, "WHITE");
+        });
+
+        assertEquals("Error: unauthorized", thrown.getMessage());
+    }
+
+    @Test
+    public void testJoinGame_Fail_GameNotFound() throws DataAccessException {
+        String validToken = "validToken123";
+        String username = "testUser";
+        authDAO.createAuth(new AuthData(validToken, username));
+
+        int nonExistentGameID = 999;
+
+        DataAccessException thrown = assertThrows(DataAccessException.class, () -> {
+            gameService.joinGame(validToken, nonExistentGameID, "WHITE");
+        });
+
+        assertEquals("Game data not found", thrown.getMessage());
+    }
+
+    @Test
+    public void testJoinGame_Fail_InvalidColor() throws DataAccessException {
+        String validToken = "validToken123";
+        String username = "testUser";
+        authDAO.createAuth(new AuthData(validToken, username));
+
+        String gameName = "Chess Match";
+        int gameID = gameService.createGame(validToken, gameName);
+
+        DataAccessException thrown = assertThrows(DataAccessException.class, () -> {
+            gameService.joinGame(validToken, gameID, "BLUE");
+        });
+
+        assertEquals("Error: invalid color choice", thrown.getMessage());
+    }
+
+    @Test
+    public void testJoinGame_Fail_SeatAlreadyTaken() throws DataAccessException {
+        String token1 = "token1";
+        String token2 = "token2";
+        String user1 = "player1";
+        String user2 = "player2";
+
+        authDAO.createAuth(new AuthData(token1, user1));
+        authDAO.createAuth(new AuthData(token2, user2));
+
+        String gameName = "Chess Game";
+        int gameID = gameService.createGame(token1, gameName);
+
+        gameService.joinGame(token1, gameID, "WHITE");
+
+        DataAccessException thrown = assertThrows(DataAccessException.class, () -> {
+            gameService.joinGame(token2, gameID, "WHITE");
+        });
+
+        assertEquals("Error: white seat already taken", thrown.getMessage());
+    }
+
+    @Test
+    public void testJoinGame_Fail_BothSeatsTaken() throws DataAccessException {
+        String token1 = "token1";
+        String token2 = "token2";
+        String token3 = "token3";
+        String user1 = "player1";
+        String user2 = "player2";
+        String user3 = "player3";
+
+        authDAO.createAuth(new AuthData(token1, user1));
+        authDAO.createAuth(new AuthData(token2, user2));
+        authDAO.createAuth(new AuthData(token3, user3));
+
+        String gameName = "Chess Game";
+        int gameID = gameService.createGame(token1, gameName);
+
+        gameService.joinGame(token1, gameID, "WHITE");
+        gameService.joinGame(token2, gameID, "BLACK");
+
+        DataAccessException thrown = assertThrows(DataAccessException.class, () -> {
+            gameService.joinGame(token3, gameID, "WHITE");
+        });
+
+        assertEquals("Error: white seat already taken", thrown.getMessage());
+
+        thrown = assertThrows(DataAccessException.class, () -> {
+            gameService.joinGame(token3, gameID, "BLACK");
+        });
+
+        assertEquals("Error: black seat already taken", thrown.getMessage());
+    }
+
 
 
 }
