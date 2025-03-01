@@ -1,7 +1,9 @@
 package junittests;
 
+import dataaccess.AuthDAO;
 import dataaccess.DataAccessException;
 import dataaccess.RequestException;
+import dataaccess.UserDAO;
 import model.AuthData;
 import model.UserData;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,12 +12,13 @@ import service.UserService;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ServiceTests {
+public class UserServiceTests {
     private UserService userService;
-
+    private AuthDAO authDAO;
+    private UserDAO userDAO;
     @BeforeEach
     public void setUp() {
-        userService = new UserService();
+        userService = new UserService(userDAO, authDAO);
         userService.clear();
     }
 

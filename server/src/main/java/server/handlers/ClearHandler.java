@@ -1,6 +1,10 @@
 package server.handlers;
 
 import com.google.gson.Gson;
+import dataaccess.AuthDAO;
+import dataaccess.GameDAO;
+import dataaccess.UserDAO;
+import service.UserService;
 import spark.Request;
 import spark.Response;
 import spark.Route;
@@ -11,10 +15,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ClearHandler implements Route {
+    private final ClearService clearService;
+    public ClearHandler(UserDAO userDAO, AuthDAO authDAO, GameDAO gameDAO) {
+        this.clearService = new ClearService(userDAO, authDAO, gameDAO);
+    }
+
     @Override
     public Object handle(Request req, Response res) {
-        ClearService clearService = new ClearService();
-
         try {
             // Call the service to clear all data
             clearService.clear();

@@ -1,21 +1,18 @@
 package service;
 
-import dataaccess.MemoryAuthDAO;
-import dataaccess.MemoryUserDAO;
-import dataaccess.DataAccessException;
-import dataaccess.RequestException;
+import dataaccess.*;
 import model.AuthData;
 import model.UserData;
 
 import java.util.UUID;
 
 public class UserService {
-    private final MemoryUserDAO userDAO;
-    private final MemoryAuthDAO authDAO;
+    private final UserDAO userDAO;
+    private final AuthDAO authDAO;
 
-    public UserService() {
-        this.userDAO = new MemoryUserDAO();
-        this.authDAO = new MemoryAuthDAO();
+    public UserService(UserDAO userDAO, AuthDAO authDAO) {
+        this.userDAO = userDAO;
+        this.authDAO = authDAO;
     }
 
     public AuthData createUser(UserData userData) throws RequestException, DataAccessException {
@@ -38,7 +35,7 @@ public class UserService {
 
         return authData;
     }
-    public AuthData loginUser(UserData userData) throws RequestException {
+    public AuthData loginUser(UserData userData) throws RequestException, DataAccessException {
         if (userData == null || userData.username() == null || userData.password() == null ||
                 userData.username().isBlank() || userData.password().isBlank()) {
             throw new RequestException("Error: bad request");
