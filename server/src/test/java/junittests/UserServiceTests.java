@@ -1,9 +1,6 @@
 package junittests;
 
-import dataaccess.AuthDAO;
-import dataaccess.DataAccessException;
-import dataaccess.RequestException;
-import dataaccess.UserDAO;
+import dataaccess.*;
 import model.AuthData;
 import model.UserData;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,8 +15,13 @@ public class UserServiceTests {
     private UserDAO userDAO;
     @BeforeEach
     public void setUp() {
+        userDAO = new MemoryUserDAO();  // Assuming a parameterless constructor exists
+        authDAO = new MemoryAuthDAO();
+
         userService = new UserService(userDAO, authDAO);
         userService.clear();
+        userDAO.clear();
+        authDAO.clear();
     }
 
     @Test
