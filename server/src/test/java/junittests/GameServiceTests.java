@@ -265,7 +265,7 @@ public class GameServiceTests {
         authDAO.createAuth(new AuthData(validToken, username));
 
         DataAccessException thrown = assertThrows(DataAccessException.class, () -> {
-            gameService.createGame(validToken, "  "); // Empty or whitespace name
+            gameService.createGame(validToken, "  ");
         });
 
         assertEquals("Error: invalid game name", thrown.getMessage());
@@ -279,11 +279,9 @@ public class GameServiceTests {
 
         String gameName = "Chess Match";
 
-        // Create first game
         int gameID1 = gameService.createGame(validToken, gameName);
         System.out.println("Game 1 created with ID: " + gameID1);
 
-        // Create second game with the same name
         int gameID2 = gameService.createGame(validToken, gameName);
         System.out.println("Game 2 created with ID: " + gameID2);
 
