@@ -29,7 +29,7 @@ public class GameServiceTests {
 
 
     @Test
-    public void testListGames_Success() throws DataAccessException {
+    public void testListGamesSuccess() throws DataAccessException {
         String validToken = "validToken123";
         String username = "testUser";
         authDAO.createAuth(new AuthData(validToken, username));
@@ -44,7 +44,7 @@ public class GameServiceTests {
     }
 
     @Test
-    public void testListGames_Fail_InvalidAuthToken() {
+    public void testListGamesFailInvalidAuthToken() {
         String invalidToken = "invalidToken";
 
         DataAccessException thrown = assertThrows(DataAccessException.class, () -> {
@@ -55,7 +55,7 @@ public class GameServiceTests {
     }
 
     @Test
-    public void testListGames_Success_EmptyGamesList() throws DataAccessException {
+    public void testListGamesSuccessEmptyGamesList() throws DataAccessException {
         String validToken = "validToken123";
         String username = "testUser";
         authDAO.createAuth(new AuthData(validToken, username));
@@ -67,7 +67,7 @@ public class GameServiceTests {
     }
 
     @Test
-    public void testListGames_Fail_NullAuthToken() {
+    public void testListGamesFailNullAuthToken() {
         DataAccessException thrown = assertThrows(DataAccessException.class, () -> {
             gameService.listGames(null);
         });
@@ -76,7 +76,7 @@ public class GameServiceTests {
     }
 
     @Test
-    public void testListGames_Fail_EmptyAuthToken() {
+    public void testListGamesFailEmptyAuthToken() {
         DataAccessException thrown = assertThrows(DataAccessException.class, () -> {
             gameService.listGames("");
         });
@@ -84,7 +84,7 @@ public class GameServiceTests {
         assertEquals("Error: unauthorized", thrown.getMessage());
     }
     @Test
-    public void testGetGameData_Success() throws DataAccessException {
+    public void testGetGameDataSuccess() throws DataAccessException {
         String validToken = "validToken123";
         String username = "testUser";
         authDAO.createAuth(new AuthData(validToken, username));
@@ -102,7 +102,7 @@ public class GameServiceTests {
     }
 
     @Test
-    public void testGetGameData_Fail_InvalidAuthToken() {
+    public void testGetGameDataFailInvalidAuthToken() {
         String invalidToken = "invalidToken";
 
         DataAccessException thrown = assertThrows(DataAccessException.class, () -> {
@@ -113,7 +113,7 @@ public class GameServiceTests {
     }
 
     @Test
-    public void testGetGameData_Fail_GameNotFound() throws DataAccessException {
+    public void testGetGameDataFailGameNotFound() throws DataAccessException {
         String validToken = "validToken123";
         String username = "testUser";
         authDAO.createAuth(new AuthData(validToken, username));
@@ -126,7 +126,7 @@ public class GameServiceTests {
     }
 
     @Test
-    public void testGetGameData_Fail_NullAuthToken() {
+    public void testGetGameDataFailNullAuthToken() {
         DataAccessException thrown = assertThrows(DataAccessException.class, () -> {
             gameService.getGameData(null, 1);
         });
@@ -135,7 +135,7 @@ public class GameServiceTests {
     }
 
     @Test
-    public void testGetGameData_Fail_EmptyAuthToken() {
+    public void testGetGameDataFailEmptyAuthToken() {
         DataAccessException thrown = assertThrows(DataAccessException.class, () -> {
             gameService.getGameData("", 1);
         });
@@ -143,7 +143,7 @@ public class GameServiceTests {
         assertEquals("Error: unauthorized", thrown.getMessage());
     }
     @Test
-    public void testUpdateGame_Success() throws DataAccessException {
+    public void testUpdateGameSuccess() throws DataAccessException {
         String validToken = "validToken123";
         String username = "testUser";
         authDAO.createAuth(new AuthData(validToken, username));
@@ -162,7 +162,7 @@ public class GameServiceTests {
     }
 
     @Test
-    public void testUpdateGame_Fail_InvalidAuthToken() {
+    public void testUpdateGameFailInvalidAuthToken() {
         String invalidToken = "invalidToken";
         GameData updatedGame = new GameData(1, "player1", "player2", "Updated Chess Match", null);
 
@@ -174,7 +174,7 @@ public class GameServiceTests {
     }
 
     @Test
-    public void testUpdateGame_Fail_GameNotFound() throws DataAccessException {
+    public void testUpdateGameFailGameNotFound() throws DataAccessException {
         String validToken = "validToken123";
         String username = "testUser";
         authDAO.createAuth(new AuthData(validToken, username));
@@ -189,7 +189,7 @@ public class GameServiceTests {
     }
 
     @Test
-    public void testUpdateGame_Fail_NullGameData() throws DataAccessException {
+    public void testUpdateGameFailNullGameData() throws DataAccessException {
         String validToken = "validToken123";
         String username = "testUser";
         authDAO.createAuth(new AuthData(validToken, username));
@@ -202,7 +202,7 @@ public class GameServiceTests {
     }
 
     @Test
-    public void testUpdateGame_Fail_InvalidGameID() throws DataAccessException {
+    public void testUpdateGameFailInvalidGameID() throws DataAccessException {
         String validToken = "validToken123";
         String username = "testUser";
         authDAO.createAuth(new AuthData(validToken, username));
@@ -216,7 +216,7 @@ public class GameServiceTests {
         assertEquals("Error: invalid game data", thrown.getMessage());
     }
     @Test
-    public void testCreateGame_Success() throws DataAccessException {
+    public void testCreateGameSuccess() throws DataAccessException {
         String validToken = "validToken123";
         String username = "testUser";
         authDAO.createAuth(new AuthData(validToken, username));
@@ -234,7 +234,7 @@ public class GameServiceTests {
     }
 
     @Test
-    public void testCreateGame_Fail_InvalidAuthToken() {
+    public void testCreateGameFailInvalidAuthToken() {
         String invalidToken = "invalidToken";
         String gameName = "Invalid Game";
 
@@ -246,7 +246,7 @@ public class GameServiceTests {
     }
 
     @Test
-    public void testCreateGame_Fail_NullGameName() throws DataAccessException {
+    public void testCreateGameFailNullGameName() throws DataAccessException {
         String validToken = "validToken123";
         String username = "testUser";
         authDAO.createAuth(new AuthData(validToken, username));
