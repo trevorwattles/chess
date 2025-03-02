@@ -114,9 +114,6 @@ public class GameService {
 
 
     public void clear() throws DataAccessException {
-        System.out.println("Before clear - games count: " + gameDAO.listGames().size());
         gameDAO.clear();
-        authDAO.clear();
-        System.out.println("After clear - games count: " + gameDAO.listGames().size());
     }
 }

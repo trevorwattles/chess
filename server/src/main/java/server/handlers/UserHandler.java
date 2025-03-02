@@ -30,9 +30,9 @@ public class UserHandler {
             return gson.toJson(authData);
         } catch (RequestException e) {
             if (e.getMessage().equals("Error: already taken")) {
-                res.status(403); // Forbidden when username is already taken
+                res.status(403);
             } else {
-                res.status(400); // Bad request for other input issues
+                res.status(400);
             }
             return gson.toJson(Map.of("message", e.getMessage()));
         } catch (DataAccessException e) {
