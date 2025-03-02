@@ -16,24 +16,32 @@ import java.util.Set;
 public class GameHandler {
     private final GameService gameService;
     private final Gson gson = new Gson();
+    private final AuthDAO authDAO;
 
     public GameHandler(GameDAO gameDAO, AuthDAO authDAO) {
         this.gameService = new GameService(gameDAO, authDAO);
+        this.authDAO = authDAO;
     }
 
     public Object listGames(Request req, Response resp) {
         try {
             String authToken = req.headers("authorization");
+            System.out.println("Received Auth Token for listGames: " + authToken);
             if (authToken == null || authToken.isEmpty()) {
                 resp.status(401);
                 return gson.toJson(Map.of("message", "Error: unauthorized"));
             }
-
+            if (authDAO.getAuth(authToken) == null) {
+                System.out.println("Auth Token NOT FOUND, returning 401 Unauthorized");
+                resp.status(401);
+                return gson.toJson(Map.of("message", "Error: unauthorized - invalid token"));
+            }
             Set<GameData> games = gameService.listGames(authToken);
-
+            System.out.println("Games found: " + games.size());
             resp.status(200);
             return gson.toJson(Map.of("games", games));
         } catch (DataAccessException e) {
+            System.out.println("Error in listGames: " + e.getMessage());
             resp.status(500);
             return gson.toJson(Map.of("message", e.getMessage()));
         }
