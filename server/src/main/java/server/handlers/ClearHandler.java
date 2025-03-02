@@ -10,7 +10,6 @@ import service.ClearService;
 import dataaccess.DataAccessException;
 
 import java.util.HashMap;
-import java.util.Map;
 
 public class ClearHandler {
     private final ClearService clearService;
