@@ -259,7 +259,7 @@ public class GameServiceTests {
     }
 
     @Test
-    public void testCreateGame_Fail_EmptyGameName() throws DataAccessException {
+    public void testCreateGameFailEmptyGameName() throws DataAccessException {
         String validToken = "validToken123";
         String username = "testUser";
         authDAO.createAuth(new AuthData(validToken, username));
@@ -272,7 +272,7 @@ public class GameServiceTests {
     }
 
     @Test
-    public void testCreateGame_Fail_DuplicateGameNamesAllowed() throws DataAccessException {
+    public void testCreateGameFailDuplicateGameNamesAllowed() throws DataAccessException {
         String validToken = "validToken123";
         String username = "testUser";
         authDAO.createAuth(new AuthData(validToken, username));
@@ -295,7 +295,7 @@ public class GameServiceTests {
         assertNotEquals(gameID1, gameID2, "Game IDs should be unique even if the names are the same");
     }
     @Test
-    public void testJoinGame_Success_White() throws DataAccessException {
+    public void testJoinGameSuccessWhite() throws DataAccessException {
         String validToken = "validToken123";
         String username = "testUser";
         authDAO.createAuth(new AuthData(validToken, username));
@@ -314,7 +314,7 @@ public class GameServiceTests {
     }
 
     @Test
-    public void testJoinGame_Success_Black() throws DataAccessException {
+    public void testJoinGameSuccessBlack() throws DataAccessException {
         String validToken = "validToken456";
         String username = "testUser2";
         authDAO.createAuth(new AuthData(validToken, username));
@@ -333,7 +333,7 @@ public class GameServiceTests {
     }
 
     @Test
-    public void testJoinGame_Fail_InvalidAuthToken() {
+    public void testJoinGameFailInvalidAuthToken() {
         String invalidToken = "invalidToken";
         int gameID = 1;
 
@@ -345,7 +345,7 @@ public class GameServiceTests {
     }
 
     @Test
-    public void testJoinGame_Fail_GameNotFound() throws DataAccessException {
+    public void testJoinGameFailGameNotFound() throws DataAccessException {
         String validToken = "validToken123";
         String username = "testUser";
         authDAO.createAuth(new AuthData(validToken, username));
@@ -360,7 +360,7 @@ public class GameServiceTests {
     }
 
     @Test
-    public void testJoinGame_Fail_InvalidColor() throws DataAccessException {
+    public void testJoinGameFailInvalidColor() throws DataAccessException {
         String validToken = "validToken123";
         String username = "testUser";
         authDAO.createAuth(new AuthData(validToken, username));
@@ -376,7 +376,7 @@ public class GameServiceTests {
     }
 
     @Test
-    public void testJoinGame_Fail_SeatAlreadyTaken() throws DataAccessException {
+    public void testJoinGameFailSeatAlreadyTaken() throws DataAccessException {
         String token1 = "token1";
         String token2 = "token2";
         String user1 = "player1";
@@ -398,7 +398,7 @@ public class GameServiceTests {
     }
 
     @Test
-    public void testJoinGame_Fail_BothSeatsTaken() throws DataAccessException {
+    public void testJoinGameFailBothSeatsTaken() throws DataAccessException {
         String token1 = "token1";
         String token2 = "token2";
         String token3 = "token3";

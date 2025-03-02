@@ -23,7 +23,7 @@ public class UserServiceTests {
     }
 
     @Test
-    public void testCreateUser_Success() throws RequestException, DataAccessException {
+    public void testCreateUserSuccess() throws RequestException, DataAccessException {
 
         UserData newUser = new UserData("testUser", "password123", "test@example.com");
 
@@ -36,7 +36,7 @@ public class UserServiceTests {
     }
 
     @Test
-    public void testCreateUser_Fail_NullInput() {
+    public void testCreateUserFailNullInput() {
         RequestException thrown = assertThrows(RequestException.class, () -> {
             userService.createUser(null);
         });
@@ -45,7 +45,7 @@ public class UserServiceTests {
     }
 
     @Test
-    public void testCreateUser_Fail_MissingFields() {
+    public void testCreateUserFailMissingFields() {
         UserData userWithoutUsername = new UserData(null, "password123", "email@example.com");
         RequestException thrown1 = assertThrows(RequestException.class, () -> {
             userService.createUser(userWithoutUsername);
@@ -66,7 +66,7 @@ public class UserServiceTests {
     }
 
     @Test
-    public void testCreateUser_Fail_UsernameTaken() throws RequestException, DataAccessException {
+    public void testCreateUserFailUsernameTaken() throws RequestException, DataAccessException {
         UserData existingUser = new UserData("existingUser", "password123", "existing@example.com");
         userService.createUser(existingUser);
 
@@ -77,7 +77,7 @@ public class UserServiceTests {
         assertEquals("Error: already taken", thrown.getMessage());
     }
     @Test
-    public void testLoginUser_Success() throws RequestException, DataAccessException {
+    public void testLoginUserSuccess() throws RequestException, DataAccessException {
         UserData newUser = new UserData("testUser", "password123", "test@example.com");
         userService.createUser(newUser);
 
@@ -90,7 +90,7 @@ public class UserServiceTests {
     }
 
     @Test
-    public void testLoginUser_Fail_UserNotFound() {
+    public void testLoginUserFailUserNotFound() {
 
         RequestException thrown = assertThrows(RequestException.class, () -> {
             userService.loginUser(new UserData("nonExistentUser", "password123", null));
@@ -100,7 +100,7 @@ public class UserServiceTests {
     }
 
     @Test
-    public void testLoginUser_Fail_IncorrectPassword() throws RequestException, DataAccessException {
+    public void testLoginUserFailIncorrectPassword() throws RequestException, DataAccessException {
         UserData newUser = new UserData("testUser", "correctPassword", "test@example.com");
         userService.createUser(newUser);
 
@@ -112,7 +112,7 @@ public class UserServiceTests {
     }
 
     @Test
-    public void testLoginUser_Fail_MissingFields() {
+    public void testLoginUserFailMissingFields() {
 
         RequestException thrown1 = assertThrows(RequestException.class, () -> {
             userService.loginUser(new UserData(null, "password123", null));
@@ -125,7 +125,7 @@ public class UserServiceTests {
         assertEquals("Error: bad request", thrown2.getMessage());
     }
     @Test
-    public void testLogoutUser_Success() throws RequestException, DataAccessException {
+    public void testLogoutUserSuccess() throws RequestException, DataAccessException {
         UserData newUser = new UserData("testUser", "password123", "test@example.com");
         AuthData authData = userService.createUser(newUser);
 
@@ -139,7 +139,7 @@ public class UserServiceTests {
     }
 
     @Test
-    public void testLogoutUser_Fail_InvalidAuthToken() {
+    public void testLogoutUserFailInvalidAuthToken() {
         DataAccessException thrown = assertThrows(DataAccessException.class, () -> {
             userService.logoutUser("invalidAuthToken");
         });
@@ -148,7 +148,7 @@ public class UserServiceTests {
     }
 
     @Test
-    public void testLogoutUser_Fail_NullOrEmptyAuthToken() {
+    public void testLogoutUserFailNullOrEmptyAuthToken() {
         DataAccessException thrown1 = assertThrows(DataAccessException.class, () -> {
             userService.logoutUser(null);
         });
@@ -160,7 +160,7 @@ public class UserServiceTests {
         assertEquals("Error: unauthorized", thrown2.getMessage());
     }
     @Test
-    public void testGetAuthData_Success() throws RequestException, DataAccessException {
+    public void testGetAuthDataSuccess() throws RequestException, DataAccessException {
         UserData newUser = new UserData("testUser", "password123", "test@example.com");
         AuthData authData = userService.createUser(newUser);
         AuthData retrievedAuthData = assertDoesNotThrow(() -> userService.getAuthData(authData.authToken()));
@@ -171,7 +171,7 @@ public class UserServiceTests {
     }
 
     @Test
-    public void testGetAuthData_Fail_InvalidAuthToken() {
+    public void testGetAuthDataFailInvalidAuthToken() {
         DataAccessException thrown = assertThrows(DataAccessException.class, () -> {
             userService.getAuthData("invalidAuthToken");
         });
@@ -180,7 +180,7 @@ public class UserServiceTests {
     }
 
     @Test
-    public void testGetAuthData_Fail_NullOrEmptyAuthToken() {
+    public void testGetAuthDataFailNullOrEmptyAuthToken() {
         DataAccessException thrown1 = assertThrows(DataAccessException.class, () -> {
             userService.getAuthData(null);
         });
@@ -192,7 +192,7 @@ public class UserServiceTests {
         assertEquals("Error: unauthorized", thrown2.getMessage());
     }
     @Test
-    public void testClear_Success() throws RequestException, DataAccessException {
+    public void testClearSuccess() throws RequestException, DataAccessException {
         UserData newUser = new UserData("testUser", "password123", "test@example.com");
         AuthData authData = userService.createUser(newUser);
 
