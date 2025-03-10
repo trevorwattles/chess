@@ -9,25 +9,29 @@ import java.sql.SQLException;
 
 public class MySQLAuthDAO implements AuthDAO {
 
-    // Constructor to ensure the auth table exists
     public MySQLAuthDAO() {
         try (Connection conn = DatabaseManager.getConnection()) {
-            // Create the auth table if it doesn't exist.
-            // Here we assume the auth table has one column: auth_token as the primary key.
-            // You can add more columns as needed.
-            String sql = "CREATE TABLE IF NOT EXISTS auth (" +
-                    "auth_token VARCHAR(255) PRIMARY KEY" +
+            // Drop the table if it already exists (for testing purposes)
+            String dropSql = "DROP TABLE IF EXISTS auth";
+            try (PreparedStatement dropPs = conn.prepareStatement(dropSql)) {
+                dropPs.executeUpdate();
+            }
+
+            // Create the table with the correct schema
+            String createSql = "CREATE TABLE IF NOT EXISTS auth (" +
+                    "auth_token VARCHAR(255) PRIMARY KEY," +
+                    "username VARCHAR(255) NOT NULL" +
                     ")";
-            try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.executeUpdate();
+            try (PreparedStatement createPs = conn.prepareStatement(createSql)) {
+                createPs.executeUpdate();
             }
         } catch (SQLException e) {
-            // You may want to throw a custom DataAccessException here.
             throw new RuntimeException("Error initializing auth table: " + e.getMessage());
         } catch (DataAccessException e) {
             throw new RuntimeException(e);
         }
     }
+
 
     @Override
     public void clear() {
@@ -44,15 +48,17 @@ public class MySQLAuthDAO implements AuthDAO {
     @Override
     public void createAuth(AuthData auth) {
         try (Connection conn = DatabaseManager.getConnection()) {
-            String sql = "INSERT INTO auth (auth_token) VALUES (?)";
+            String sql = "INSERT INTO auth (auth_token, username) VALUES (?, ?)";
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setString(1, auth.authToken());
+                ps.setString(2, auth.username()); // Ensure you bind the username value!
                 ps.executeUpdate();
             }
         } catch (SQLException | DataAccessException e) {
             throw new RuntimeException("Error inserting auth record: " + e.getMessage());
         }
     }
+
 
     @Override
     public AuthData getAuth(String authToken) {
