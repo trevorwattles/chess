@@ -68,14 +68,16 @@ public class GameService {
             throw new DataAccessException("Error: invalid game name");
         }
 
-        GameData newGame = new GameData(0, null, null, gameName, null);
+        GameData newGame = new GameData(0, authData.username(), null, gameName, null);
         gameDAO.createGame(newGame);
 
         List<GameData> allGames = gameDAO.listGames();
-        int maxGameID = allGames.stream().mapToInt(GameData::gameID).max().orElseThrow(() -> new DataAccessException("Error: failed to create game"));
+        int maxGameID = allGames.stream().mapToInt(GameData::gameID)
+                .max().orElseThrow(() -> new DataAccessException("Error: failed to create game"));
 
         return maxGameID;
     }
+
 
 
 

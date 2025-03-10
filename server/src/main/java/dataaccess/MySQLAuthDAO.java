@@ -11,8 +11,6 @@ public class MySQLAuthDAO implements AuthDAO {
 
     public MySQLAuthDAO() {
         try (Connection conn = DatabaseManager.getConnection()) {
-            // For production, do not drop the table so that data persists.
-            // Instead, just ensure the table exists:
             String createSql = "CREATE TABLE IF NOT EXISTS auth (" +
                     "auth_token VARCHAR(255) PRIMARY KEY," +
                     "username VARCHAR(255) NOT NULL" +
