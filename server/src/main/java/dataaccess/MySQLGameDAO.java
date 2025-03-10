@@ -15,10 +15,7 @@ public class MySQLGameDAO implements GameDAO {
 
     public MySQLGameDAO() {
         try (Connection conn = DatabaseManager.getConnection()) {
-            String dropSql = "DROP TABLE IF EXISTS game";
-            try (PreparedStatement dropPs = conn.prepareStatement(dropSql)) {
-                dropPs.executeUpdate();
-            }
+            // Do not drop the table—just create it if it does not exist.
             String createSql = "CREATE TABLE IF NOT EXISTS game (" +
                     "game_id INT PRIMARY KEY, " +
                     "white_username VARCHAR(255) NOT NULL, " +
@@ -33,6 +30,7 @@ public class MySQLGameDAO implements GameDAO {
             throw new RuntimeException("Error initializing game table: " + e.getMessage());
         }
     }
+
 
     @Override
     public void createGame(GameData game) throws DataAccessException {

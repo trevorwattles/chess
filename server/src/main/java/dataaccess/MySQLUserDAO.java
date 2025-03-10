@@ -11,10 +11,7 @@ public class MySQLUserDAO implements UserDAO {
 
     public MySQLUserDAO() {
         try (Connection conn = DatabaseManager.getConnection()) {
-            String dropSql = "DROP TABLE IF EXISTS user";
-            try (PreparedStatement dropPs = conn.prepareStatement(dropSql)) {
-                dropPs.executeUpdate();
-            }
+            // Instead of dropping the table, simply create it if it doesn't exist.
             String createSql = "CREATE TABLE IF NOT EXISTS user (" +
                     "username VARCHAR(255) PRIMARY KEY, " +
                     "password VARCHAR(255) NOT NULL, " +
@@ -27,6 +24,7 @@ public class MySQLUserDAO implements UserDAO {
             throw new RuntimeException("Error initializing user table: " + e.getMessage());
         }
     }
+
 
     @Override
     public void clear() {

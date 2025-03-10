@@ -11,13 +11,8 @@ public class MySQLAuthDAO implements AuthDAO {
 
     public MySQLAuthDAO() {
         try (Connection conn = DatabaseManager.getConnection()) {
-            // Drop the table if it already exists (for testing purposes)
-            String dropSql = "DROP TABLE IF EXISTS auth";
-            try (PreparedStatement dropPs = conn.prepareStatement(dropSql)) {
-                dropPs.executeUpdate();
-            }
-
-            // Create the table with the correct schema
+            // For production, do not drop the table so that data persists.
+            // Instead, just ensure the table exists:
             String createSql = "CREATE TABLE IF NOT EXISTS auth (" +
                     "auth_token VARCHAR(255) PRIMARY KEY," +
                     "username VARCHAR(255) NOT NULL" +
@@ -31,6 +26,7 @@ public class MySQLAuthDAO implements AuthDAO {
             throw new RuntimeException(e);
         }
     }
+
 
 
     @Override
