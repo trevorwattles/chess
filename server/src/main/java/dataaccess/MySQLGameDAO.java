@@ -22,7 +22,7 @@ public class MySQLGameDAO implements GameDAO {
             String createSql = "CREATE TABLE IF NOT EXISTS game (" +
                     "game_id INT PRIMARY KEY, " +
                     "white_username VARCHAR(255) NOT NULL, " +
-                    "black_username VARCHAR(255) NOT NULL, " +
+                    "black_username VARCHAR(255), " +
                     "game_name VARCHAR(255) NOT NULL, " +
                     "game_state TEXT NOT NULL" +
                     ")";
