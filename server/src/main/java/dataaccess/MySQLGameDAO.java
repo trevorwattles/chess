@@ -40,7 +40,7 @@ public class MySQLGameDAO implements GameDAO {
                 ps.setString(2, game.whiteUsername());
                 ps.setString(3, game.blackUsername());
                 ps.setString(4, game.gameName());
-                ps.setString(5, gson.toJson(game.game()));
+                ps.setString(5, gson.toJson(game));
                 ps.executeUpdate();
             }
         } catch (SQLException e) {
