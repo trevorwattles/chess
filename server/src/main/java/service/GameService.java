@@ -68,7 +68,7 @@ public class GameService {
             throw new DataAccessException("Error: invalid game name");
         }
 
-        GameData newGame = new GameData(0, authData.username(), null, gameName, null);
+        GameData newGame = new GameData(0, null, null, gameName, null);
         gameDAO.createGame(newGame);
 
         List<GameData> allGames = gameDAO.listGames();

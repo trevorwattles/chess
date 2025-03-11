@@ -16,11 +16,12 @@ public class MySQLGameDAO implements GameDAO {
     public MySQLGameDAO() {
         try (Connection conn = DatabaseManager.getConnection()) {
             String createSql = "CREATE TABLE IF NOT EXISTS game (" +
-                    "game_id INT PRIMARY KEY, " +
-                    "white_username VARCHAR(255) NOT NULL, " +
-                    "black_username VARCHAR(255), " +
+                    "game_id INT NOT NULL, " +
+                    "white_username VARCHAR(255) DEFAULT NULL, " +
+                    "black_username VARCHAR(255) DEFAULT NULL, " +
                     "game_name VARCHAR(255) NOT NULL, " +
-                    "game_state TEXT NOT NULL" +
+                    "game_state TEXT," +
+                    "PRIMARY KEY (game_id)" +
                     ")";
             try (PreparedStatement createPs = conn.prepareStatement(createSql)) {
                 createPs.executeUpdate();
@@ -40,7 +41,7 @@ public class MySQLGameDAO implements GameDAO {
                 ps.setString(2, game.whiteUsername());
                 ps.setString(3, game.blackUsername());
                 ps.setString(4, game.gameName());
-                ps.setString(5, new Gson().toJson(game));
+                ps.setString(5, new Gson().toJson(game.game()));
                 ps.executeUpdate();
             }
         } catch (SQLException e) {
