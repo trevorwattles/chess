@@ -1,6 +1,5 @@
-package sqldaotests;
+package dataaccess;
 
-import dataaccess.MySQLAuthDAO;
 import model.AuthData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
