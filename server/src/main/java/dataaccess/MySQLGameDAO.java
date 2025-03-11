@@ -30,23 +30,24 @@ public class MySQLGameDAO implements GameDAO {
         }
     }
 
-
     @Override
     public void createGame(GameData game) throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
+            int nextId = generateNextGameId(conn);
             String sql = "INSERT INTO game (game_id, white_username, black_username, game_name, game_state) VALUES (?, ?, ?, ?, ?)";
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setInt(1, game.gameID());
+                ps.setInt(1, nextId);
                 ps.setString(2, game.whiteUsername());
                 ps.setString(3, game.blackUsername());
                 ps.setString(4, game.gameName());
-                ps.setString(5, gson.toJson(game));
+                ps.setString(5, new Gson().toJson(game));
                 ps.executeUpdate();
             }
         } catch (SQLException e) {
             throw new DataAccessException("Error inserting game record: " + e.getMessage());
         }
     }
+
 
     @Override
     public GameData getGame(int gameID) throws DataAccessException {
@@ -123,5 +124,16 @@ public class MySQLGameDAO implements GameDAO {
         } catch (SQLException e) {
             throw new DataAccessException("Error clearing game table: " + e.getMessage());
         }
+    }
+
+    private int generateNextGameId(Connection conn) throws SQLException {
+        String sql = "SELECT COALESCE(MAX(game_id), 0) + 1 AS nextId FROM game";
+        try (PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt("nextId");
+            }
+        }
+        throw new SQLException("Failed to generate next game id");
     }
 }
