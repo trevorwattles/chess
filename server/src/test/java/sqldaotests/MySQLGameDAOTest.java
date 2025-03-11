@@ -86,7 +86,7 @@ public class MySQLGameDAOTest {
     }
 
     @Test
-    public void testListGamesNegative_Empty() throws DataAccessException {
+    public void testListGamesNegativeEmpty() throws DataAccessException {
         List<GameData> games = gameDAO.listGames();
         assertTrue(games.isEmpty());
     }

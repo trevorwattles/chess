@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MySQLGameDAO implements GameDAO {
-    private static final Gson gson = new Gson();
+    private static final Gson GSON = new Gson();
 
     public MySQLGameDAO() {
         try (Connection conn = DatabaseManager.getConnection()) {
@@ -63,7 +63,7 @@ public class MySQLGameDAO implements GameDAO {
                         String black = rs.getString("black_username");
                         String gameName = rs.getString("game_name");
                         String gameState = rs.getString("game_state");
-                        ChessGame chessGame = gson.fromJson(gameState, ChessGame.class);
+                        ChessGame chessGame = GSON.fromJson(gameState, ChessGame.class);
                         return new GameData(id, white, black, gameName, chessGame);
                     }
                 }
@@ -87,7 +87,7 @@ public class MySQLGameDAO implements GameDAO {
                         String black = rs.getString("black_username");
                         String gameName = rs.getString("game_name");
                         String gameState = rs.getString("game_state");
-                        ChessGame chessGame = gson.fromJson(gameState, ChessGame.class);
+                        ChessGame chessGame = GSON.fromJson(gameState, ChessGame.class);
                         games.add(new GameData(id, white, black, gameName, chessGame));
                     }
                 }
@@ -106,7 +106,7 @@ public class MySQLGameDAO implements GameDAO {
                 ps.setString(1, game.whiteUsername());
                 ps.setString(2, game.blackUsername());
                 ps.setString(3, game.gameName());
-                ps.setString(4, gson.toJson(game.game()));
+                ps.setString(4, GSON.toJson(game.game()));
                 ps.setInt(5, game.gameID());
                 ps.executeUpdate();
             }
