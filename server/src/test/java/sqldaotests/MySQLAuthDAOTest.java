@@ -1,4 +1,4 @@
-package SQLDAOTests;
+package sqldaotests;
 
 import dataaccess.MySQLAuthDAO;
 import model.AuthData;
@@ -18,7 +18,7 @@ public class MySQLAuthDAOTest {
     }
 
     @Test
-    public void testClear_Positive() {
+    public void testClearPositive() {
         AuthData auth = new AuthData("token123", "user123");
         authDAO.createAuth(auth);
         assertNotNull(authDAO.getAuth("token123"), "Auth record should exist before clearing.");
@@ -28,7 +28,7 @@ public class MySQLAuthDAOTest {
     }
 
     @Test
-    public void testCreateAuth_Positive() {
+    public void testCreateAuthPositive() {
         AuthData auth = new AuthData("tokenPositive", "userPositive");
         authDAO.createAuth(auth);
         AuthData retrieved = authDAO.getAuth("tokenPositive");
@@ -38,7 +38,7 @@ public class MySQLAuthDAOTest {
     }
 
     @Test
-    public void testCreateAuth_Negative_Duplicate() {
+    public void testCreateAuthNegativeDuplicate() {
         AuthData auth = new AuthData("duplicateToken", "userDuplicate");
         authDAO.createAuth(auth);
         Exception exception = assertThrows(RuntimeException.class, () -> {
@@ -48,7 +48,7 @@ public class MySQLAuthDAOTest {
     }
 
     @Test
-    public void testGetAuth_Positive() {
+    public void testGetAuthPositive() {
         AuthData auth = new AuthData("tokenGet", "userGet");
         authDAO.createAuth(auth);
         AuthData retrieved = authDAO.getAuth("tokenGet");
@@ -58,13 +58,13 @@ public class MySQLAuthDAOTest {
     }
 
     @Test
-    public void testGetAuth_Negative_NotFound() {
+    public void testGetAuthNegativeNotFound() {
         AuthData retrieved = authDAO.getAuth("nonExistentToken");
         assertNull(retrieved, "Retrieving a non-existent auth record should return null.");
     }
 
     @Test
-    public void testDeleteAuth_Positive() {
+    public void testDeleteAuthPositive() {
         AuthData auth = new AuthData("tokenDelete", "userDelete");
         authDAO.createAuth(auth);
         assertNotNull(authDAO.getAuth("tokenDelete"), "Auth record should exist before deletion.");
@@ -74,7 +74,7 @@ public class MySQLAuthDAOTest {
     }
 
     @Test
-    public void testDeleteAuth_Negative_NonExistent() {
+    public void testDeleteAuthNegativeNonExistent() {
         AuthData auth = new AuthData("nonExistent", "noUser");
         assertDoesNotThrow(() -> authDAO.deleteAuth(auth), "Deleting a non-existent auth should not throw an exception.");
     }

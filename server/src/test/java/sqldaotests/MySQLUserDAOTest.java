@@ -1,4 +1,4 @@
-package SQLDAOTests;
+package sqldaotests;
 
 import dataaccess.DataAccessException;
 import dataaccess.MySQLUserDAO;
@@ -19,7 +19,7 @@ public class MySQLUserDAOTest {
     }
 
     @Test
-    public void testCreateUser_Positive() {
+    public void testCreateUserPositive() {
         UserData user = new UserData("john", "password123", "john@example.com");
         assertDoesNotThrow(() -> userDAO.createUser(user), "Creating a new user should not throw an exception");
         UserData retrieved = null;
@@ -30,14 +30,13 @@ public class MySQLUserDAOTest {
         }
         assertNotNull(retrieved, "User should be retrieved after creation");
         assertEquals("john", retrieved.username());
-        // Check that the stored password is hashed and verifies correctly
         assertNotEquals("password123", retrieved.password(), "Stored password should not be clear text");
         assertTrue(BCrypt.checkpw("password123", retrieved.password()), "Stored password hash does not match the clear text password");
         assertEquals("john@example.com", retrieved.email());
     }
 
     @Test
-    public void testGetUser_Negative_NotFound() {
+    public void testGetUserNegativeNotFound() {
         try {
             UserData retrieved = userDAO.getUser("nonexistent");
             assertNull(retrieved, "Retrieving a non-existent user should return null");
@@ -47,7 +46,7 @@ public class MySQLUserDAOTest {
     }
 
     @Test
-    public void testCreateUser_Negative_Duplicate() {
+    public void testCreateUserNegativeDuplicate() {
         UserData user = new UserData("alice", "pass", "alice@example.com");
         assertDoesNotThrow(() -> userDAO.createUser(user), "Creating the user the first time should succeed");
         Exception exception = assertThrows(DataAccessException.class, () -> userDAO.createUser(user),
