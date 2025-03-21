@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 
 import java.io.*;
 import java.net.*;
+import java.util.Collection;
+import java.util.Map;
 
 public class HttpCommunicator {
 
@@ -14,29 +16,29 @@ public class HttpCommunicator {
         this.serverURL = serverURL;
     }
 
-    public register() {
-
+    public boolean register(String username, String password, String email) {
+        return false;
     }
 
 
-    public login() {
-
+    public boolean login(String username, String password) {
+        return false;
     }
 
-    public logout() {
-
+    public boolean logout() {
+        return false;
     }
 
-    public createGame() {
-
+    public boolean createGame(String gameName) {
+        return false;
     }
 
-    public listGames() {
-
+    public Collection<Map<String, Object>> listGames() {
+        return null;
     }
 
-    public  joinGame() {
-
+    public boolean joinGame(int gameID, String playerColor) {
+        return false;
     }
 
     private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass) throws ResponseException {
