@@ -1,6 +1,8 @@
 package client;
 
 import com.google.gson.Gson;
+import model.AuthData;
+import server.request.RegisterRequest;
 
 import java.io.*;
 import java.net.*;
@@ -16,9 +18,10 @@ public class HttpCommunicator {
         this.serverURL = serverURL;
     }
 
-    public boolean register(String username, String password, String email) {
-        return false;
+    public AuthData register(RegisterRequest request) throws ResponseException {
+        return this.makeRequest("POST", "/user", request, AuthData.class);
     }
+
 
 
     public boolean login(String username, String password) {
