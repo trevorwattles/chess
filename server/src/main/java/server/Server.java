@@ -4,6 +4,7 @@ import dataaccess.*;
 import server.handlers.ClearHandler;
 import server.handlers.GameHandler;
 import server.handlers.UserHandler;
+import service.ClearService;
 import spark.*;
 
 public class Server {

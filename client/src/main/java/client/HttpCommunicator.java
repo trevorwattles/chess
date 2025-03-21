@@ -2,6 +2,7 @@ package client;
 
 import com.google.gson.Gson;
 import model.AuthData;
+import server.request.LoginRequest;
 import server.request.RegisterRequest;
 
 import java.io.*;
@@ -24,9 +25,10 @@ public class HttpCommunicator {
 
 
 
-    public boolean login(String username, String password) {
-        return false;
+    public AuthData login(LoginRequest request) throws ResponseException {
+        return this.makeRequest("POST", "/session", request, AuthData.class);
     }
+
 
     public boolean logout() {
         return false;
@@ -43,6 +45,11 @@ public class HttpCommunicator {
     public boolean joinGame(int gameID, String playerColor) {
         return false;
     }
+
+    public void clear() throws ResponseException {
+        this.makeRequest("DELETE", "/db", null, null);
+    }
+
 
     private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass) throws ResponseException {
         try {
