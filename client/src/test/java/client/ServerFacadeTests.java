@@ -6,7 +6,6 @@ import server.Server;
 import server.request.RegisterRequest;
 import server.request.LoginRequest;
 
-
 public class ServerFacadeTests {
 
     private static Server server;
@@ -27,14 +26,12 @@ public class ServerFacadeTests {
 
     @BeforeEach
     public void clearServer() throws ResponseException {
-        serverFacade.clear();
+        serverFacade.clear();  // Clear the database before each test
     }
-
-
 
     @Test
     public void sampleTest() {
-        Assertions.assertTrue(true);
+        Assertions.assertTrue(true);  // A simple placeholder test
     }
 
     @Test
@@ -58,8 +55,9 @@ public class ServerFacadeTests {
             serverFacade.register(request);
         });
     }
+
     @Test
-    public void testLogin_Success() throws ResponseException {
+    public void testLoginSuccess() throws ResponseException {
         // Register first
         serverFacade.register(new RegisterRequest("loginUser", "securePass123", "login@example.com"));
 
@@ -72,7 +70,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void testLogin_WrongPassword() throws ResponseException {
+    public void testLoginWrongPassword() throws ResponseException {
         serverFacade.register(new RegisterRequest("badLoginUser", "rightPassword", "badlogin@example.com"));
 
         LoginRequest loginRequest = new LoginRequest("badLoginUser", "wrongPassword");
@@ -83,7 +81,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void testLogin_NonexistentUser() {
+    public void testLoginNonexistentUser() {
         LoginRequest loginRequest = new LoginRequest("ghostUser", "doesntMatter");
 
         Assertions.assertThrows(ResponseException.class, () -> {
@@ -91,10 +89,24 @@ public class ServerFacadeTests {
         });
     }
 
+    @Test
+    public void testLogoutAfterLogin() throws ResponseException {
+        // Register user
+        serverFacade.register(new RegisterRequest("logoutTestUser", "password", "logout@user.com"));
 
+        // Login user (this stores the token in HttpCommunicator)
+        serverFacade.login(new LoginRequest("logoutTestUser", "password"));
 
+        // Attempt logout (this automatically uses the stored token)
+        Assertions.assertDoesNotThrow(() -> {
+            serverFacade.logout();
+        });
+    }
 
-
+    @Test
+    public void testLogoutWithoutLogin() {
+        Assertions.assertThrows(ResponseException.class, () -> {
+            serverFacade.logout();  // Should throw an exception because there's no active session
+        });
+    }
 }
-
-

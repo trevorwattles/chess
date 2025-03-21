@@ -20,8 +20,8 @@ public class ServerFacade {
         return communicator.login(request);
     }
 
-    public void logout()  {
-
+    public void logout() throws ResponseException {
+        communicator.logout();
     }
 
     public void listGames()  {

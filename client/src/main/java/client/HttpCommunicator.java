@@ -13,6 +13,7 @@ import java.util.Map;
 public class HttpCommunicator {
 
     private final String serverURL;
+    private static String authToken;
 
     public HttpCommunicator(String serverURL) {
 
@@ -20,19 +21,27 @@ public class HttpCommunicator {
     }
 
     public AuthData register(RegisterRequest request) throws ResponseException {
-        return this.makeRequest("POST", "/user", request, AuthData.class);
+        AuthData authData = this.makeRequest("POST", "/user", request, AuthData.class);
+        authToken = authData.authToken();
+        return authData;
     }
 
 
 
     public AuthData login(LoginRequest request) throws ResponseException {
-        return this.makeRequest("POST", "/session", request, AuthData.class);
+        AuthData authData = this.makeRequest("POST", "/session", request, AuthData.class);
+        authToken = authData.authToken();
+        return authData;
     }
 
 
-    public boolean logout() {
-        return false;
+    public void logout() throws ResponseException {
+        this.makeRequest("DELETE", "/session", null, null);
+        authToken = null;
     }
+
+
+
 
     public boolean createGame(String gameName) {
         return false;
@@ -58,6 +67,11 @@ public class HttpCommunicator {
             http.setRequestMethod(method);
             http.setDoOutput(true);
 
+            // ⬇️ Add token if it's available
+            if (authToken != null && !authToken.isEmpty()) {
+                http.setRequestProperty("Authorization", authToken);
+            }
+
             writeBody(request, http);
             http.connect();
             throwIfNotSuccessful(http);
@@ -68,6 +82,7 @@ public class HttpCommunicator {
             throw new ResponseException(500, ex.getMessage());
         }
     }
+
     private static void writeBody(Object request, HttpURLConnection http) throws IOException {
         if (request != null) {
             http.addRequestProperty("Content-Type", "application/json");
