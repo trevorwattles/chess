@@ -1,6 +1,7 @@
 package client;
 
 import dataaccess.DataAccessException;
+import model.GameData;
 import org.junit.jupiter.api.*;
 import server.Server;
 import server.request.RegisterRequest;
@@ -109,4 +110,23 @@ public class ServerFacadeTests {
             serverFacade.logout();  // Should throw an exception because there's no active session
         });
     }
+
+    @Test
+    public void testCreateGameSuccess() throws ResponseException {
+        serverFacade.register(new RegisterRequest("creatorUser", "password", "creator@example.com"));
+        serverFacade.login(new LoginRequest("creatorUser", "password"));
+
+        GameData game = serverFacade.createGame("My Cool Game");
+        Assertions.assertNotNull(game);
+        Assertions.assertTrue(game.gameID() > 0);
+        Assertions.assertEquals("My Cool Game", game.gameName());
+    }
+    @Test
+    public void testCreateGameWithoutLogin() {
+        Assertions.assertThrows(ResponseException.class, () -> {
+            serverFacade.createGame("Unauthorized Game");
+        });
+    }
+
+
 }

@@ -1,5 +1,6 @@
 package server.handlers;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import dataaccess.AuthDAO;
 import dataaccess.GameDAO;
@@ -60,8 +61,11 @@ public class GameHandler {
             }
 
             int gameID = gameService.createGame(authToken, gameName);
+
+            GameData newGame = new GameData(gameID, null, null, gameName, new ChessGame());
             resp.status(200);
-            return gson.toJson(Map.of("gameID", gameID));
+            return gson.toJson(newGame);
+
         } catch (DataAccessException e) {
             if (e.getMessage().contains("unauthorized")) {
                 resp.status(401);
@@ -71,6 +75,7 @@ public class GameHandler {
             return gson.toJson(Map.of("message", e.getMessage()));
         }
     }
+
 
     public Object joinGame(Request req, Response resp) {
         try {
