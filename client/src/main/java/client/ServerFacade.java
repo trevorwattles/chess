@@ -38,9 +38,10 @@ public class ServerFacade {
         return new ArrayList<>(response.games);
     }
 
-
-    public void joinGame() {
+    public void joinGame(int gameID, String playerColor) throws ResponseException {
+        communicator.joinGame(gameID, playerColor);
     }
+
 
 
     public void observeGame() {

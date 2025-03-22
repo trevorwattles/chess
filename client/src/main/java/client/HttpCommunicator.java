@@ -3,6 +3,7 @@ package client;
 import com.google.gson.Gson;
 import model.AuthData;
 import model.ListGamesResponse;
+import server.request.JoinGameRequest;
 import server.request.LoginRequest;
 import server.request.RegisterRequest;
 import server.request.CreateGameRequest;
@@ -53,9 +54,9 @@ public class HttpCommunicator {
     }
 
 
-
-    public boolean joinGame(int gameID, String playerColor) {
-        return false;
+    public void joinGame(int gameID, String playerColor) throws ResponseException {
+        var request = new JoinGameRequest(gameID, playerColor);
+        this.makeRequest("PUT", "/game", request, null);
     }
 
     public void clear() throws ResponseException {
