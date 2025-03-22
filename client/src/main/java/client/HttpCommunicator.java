@@ -2,6 +2,7 @@ package client;
 
 import com.google.gson.Gson;
 import model.AuthData;
+import model.ListGamesResponse;
 import server.request.LoginRequest;
 import server.request.RegisterRequest;
 import server.request.CreateGameRequest;
@@ -47,9 +48,11 @@ public class HttpCommunicator {
         return this.makeRequest("POST", "/game", request, GameData.class);
     }
 
-    public Collection<Map<String, Object>> listGames() {
-        return null;
+    public ListGamesResponse listGames() throws ResponseException {
+        return this.makeRequest("GET", "/game", null, ListGamesResponse.class);
     }
+
+
 
     public boolean joinGame(int gameID, String playerColor) {
         return false;

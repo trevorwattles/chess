@@ -2,8 +2,12 @@ package client;
 
 import model.GameData;
 import model.AuthData;
+import model.ListGamesResponse;
 import server.request.RegisterRequest;
 import server.request.LoginRequest;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ServerFacade {
 
@@ -29,9 +33,11 @@ public class ServerFacade {
         return communicator.createGame(gameName);
     }
 
-    public void listGames()  {
-
+    public List<GameData> listGames() throws ResponseException {
+        ListGamesResponse response = communicator.listGames();
+        return new ArrayList<>(response.games);
     }
+
 
     public void joinGame() {
     }
