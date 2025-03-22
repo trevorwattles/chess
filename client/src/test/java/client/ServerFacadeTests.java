@@ -176,5 +176,21 @@ public class ServerFacadeTests {
             serverFacade.joinGame(invalidGameID, "WHITE");
         });
     }
+    @Test
+    public void testObserveGameSuccess() throws ResponseException {
+        serverFacade.register(new RegisterRequest("observer", "pass", "obs@example.com"));
+        serverFacade.login(new LoginRequest("observer", "pass"));
+        serverFacade.createGame("A Game to Observe");
+
+        Assertions.assertDoesNotThrow(() -> serverFacade.observeGame(1));
+    }
+    @Test
+    public void testObserveNonexistentGame() throws ResponseException {
+        serverFacade.register(new RegisterRequest("observerFail", "pass", "fail@obs.com"));
+        serverFacade.login(new LoginRequest("observerFail", "pass"));
+
+        Assertions.assertThrows(ResponseException.class, () -> serverFacade.observeGame(999));
+    }
+
 
 }

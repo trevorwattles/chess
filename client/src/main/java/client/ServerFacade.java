@@ -41,11 +41,8 @@ public class ServerFacade {
     public void joinGame(int gameID, String playerColor) throws ResponseException {
         communicator.joinGame(gameID, playerColor);
     }
-
-
-
-    public void observeGame() {
-
+    public void observeGame(int gameID) throws ResponseException {
+        communicator.joinGame(gameID, "OBSERVER");
     }
 
     public void clear() throws ResponseException {
