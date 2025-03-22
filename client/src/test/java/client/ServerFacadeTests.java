@@ -127,6 +127,31 @@ public class ServerFacadeTests {
             serverFacade.createGame("Unauthorized Game");
         });
     }
+    @Test
+    public void testListGamesSuccess() throws ResponseException {
+        serverFacade.register(new RegisterRequest("listUser", "pass123", "list@user.com"));
+        serverFacade.login(new LoginRequest("listUser", "pass123"));
+
+        serverFacade.createGame("Test Game");
+
+        var games = serverFacade.listGames();
+
+        Assertions.assertNotNull(games);
+        Assertions.assertFalse(games.isEmpty(), "Game list should not be empty");
+        Assertions.assertEquals("Test Game", games.iterator().next().gameName());
+    }
+    @Test
+    public void testListGamesAfterBadCreateGame() throws ResponseException {
+        serverFacade.register(new RegisterRequest("badGameUser", "pass123", "bad@game.com"));
+        serverFacade.login(new LoginRequest("badGameUser", "pass123"));
+
+        Assertions.assertThrows(ResponseException.class, () -> {
+            serverFacade.createGame("");
+        });
+
+        var games = serverFacade.listGames();
+        Assertions.assertTrue(games.isEmpty(), "No games should exist after a failed creation");
+    }
 
 
 }
