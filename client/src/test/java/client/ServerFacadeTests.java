@@ -152,6 +152,29 @@ public class ServerFacadeTests {
         var games = serverFacade.listGames();
         Assertions.assertTrue(games.isEmpty(), "No games should exist after a failed creation");
     }
+    @Test
+    public void testJoinGameSuccess() throws ResponseException {
+        serverFacade.register(new RegisterRequest("joinUser", "password", "join@game.com"));
+        serverFacade.login(new LoginRequest("joinUser", "password"));
 
+        GameData createdGame = serverFacade.createGame("Joinable Game");
+        int gameID = createdGame.gameID();
+
+        Assertions.assertDoesNotThrow(() -> {
+            serverFacade.joinGame(gameID, "WHITE");
+        });
+    }
+
+    @Test
+    public void testJoinGameWithInvalidGameID() throws ResponseException {
+        serverFacade.register(new RegisterRequest("badGameUser", "password", "bad@game.com"));
+        serverFacade.login(new LoginRequest("badGameUser", "password"));
+
+        int invalidGameID = 99999;
+
+        Assertions.assertThrows(ResponseException.class, () -> {
+            serverFacade.joinGame(invalidGameID, "WHITE");
+        });
+    }
 
 }
