@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import model.AuthData;
 import server.request.LoginRequest;
 import server.request.RegisterRequest;
+import server.request.CreateGameRequest;
+import model.GameData;
 
 import java.io.*;
 import java.net.*;
@@ -40,11 +42,9 @@ public class HttpCommunicator {
         authToken = null;
     }
 
-
-
-
-    public boolean createGame(String gameName) {
-        return false;
+    public GameData createGame(String gameName) throws ResponseException {
+        CreateGameRequest request = new CreateGameRequest(gameName);
+        return this.makeRequest("POST", "/game", request, GameData.class);
     }
 
     public Collection<Map<String, Object>> listGames() {

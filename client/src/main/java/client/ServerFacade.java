@@ -1,5 +1,6 @@
 package client;
 
+import model.GameData;
 import model.AuthData;
 import server.request.RegisterRequest;
 import server.request.LoginRequest;
@@ -24,11 +25,11 @@ public class ServerFacade {
         communicator.logout();
     }
 
-    public void listGames()  {
-
+    public GameData createGame(String gameName) throws ResponseException {
+        return communicator.createGame(gameName);
     }
 
-    public void createGame()  {
+    public void listGames()  {
 
     }
 
