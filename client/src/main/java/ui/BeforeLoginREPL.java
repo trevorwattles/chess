@@ -12,18 +12,23 @@ public class BeforeLoginREPL {
     private final ServerFacade serverFacade;
     private final Scanner scanner;
 
-    public BeforeLoginREPL(ServerFacade serverFacade) {
+    public BeforeLoginREPL(ServerFacade serverFacade, Scanner scanner) {
         this.serverFacade = serverFacade;
-        this.scanner = new Scanner(System.in);
+        this.scanner = scanner;
     }
 
     public void run() {
-        System.out.println("Welcome to Chess! Type 'help' for a list of commands.");
+        System.out.println("♕ Welcome to Chess! Type 'help' for a list of commands.");
         boolean running = true;
 
         while (running) {
             System.out.print("prelogin> ");
             String input = scanner.nextLine().trim().toLowerCase();
+
+            if (input.isEmpty()) {
+                System.out.println("Please enter a command. Type 'help' to see available commands.");
+                continue;
+            }
 
             switch (input) {
                 case "help" -> printHelp();
@@ -58,7 +63,6 @@ public class BeforeLoginREPL {
             serverFacade.register(new RegisterRequest(username, password, email));
             System.out.println("Registration successful. Logged in as " + username);
             new AfterLoginREPL(serverFacade, scanner).run();
-
         } catch (ResponseException e) {
             System.out.println("Registration failed: " + e.getMessage());
         }
@@ -79,4 +83,3 @@ public class BeforeLoginREPL {
         }
     }
 }
-
