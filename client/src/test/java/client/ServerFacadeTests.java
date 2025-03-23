@@ -27,7 +27,7 @@ public class ServerFacadeTests {
 
     @BeforeEach
     public void clearServer() throws ResponseException {
-        serverFacade.clear();  // Clear the database before each test
+        serverFacade.clear();
     }
 
     @Test
@@ -47,11 +47,9 @@ public class ServerFacadeTests {
     public void testRegisterDuplicateUsername() throws ResponseException {
         RegisterRequest request = new RegisterRequest("duplicateUser", "password123", "test@example.com");
 
-        // First registration should succeed
         var auth = serverFacade.register(request);
         Assertions.assertNotNull(auth);
 
-        // Second registration with same username should fail
         Assertions.assertThrows(ResponseException.class, () -> {
             serverFacade.register(request);
         });
@@ -59,10 +57,8 @@ public class ServerFacadeTests {
 
     @Test
     public void testLoginSuccess() throws ResponseException {
-        // Register first
         serverFacade.register(new RegisterRequest("loginUser", "securePass123", "login@example.com"));
 
-        // Create LoginRequest and call login
         LoginRequest loginRequest = new LoginRequest("loginUser", "securePass123");
         var auth = serverFacade.login(loginRequest);
 
@@ -92,13 +88,10 @@ public class ServerFacadeTests {
 
     @Test
     public void testLogoutAfterLogin() throws ResponseException {
-        // Register user
         serverFacade.register(new RegisterRequest("logoutTestUser", "password", "logout@user.com"));
 
-        // Login user (this stores the token in HttpCommunicator)
         serverFacade.login(new LoginRequest("logoutTestUser", "password"));
 
-        // Attempt logout (this automatically uses the stored token)
         Assertions.assertDoesNotThrow(() -> {
             serverFacade.logout();
         });
@@ -107,7 +100,6 @@ public class ServerFacadeTests {
     @Test
     public void testLogoutWithoutLogin() {
         Assertions.assertThrows(ResponseException.class, () -> {
-            serverFacade.logout();  // Should throw an exception because there's no active session
         });
     }
 
