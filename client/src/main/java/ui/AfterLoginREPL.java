@@ -1,5 +1,6 @@
 package ui;
 
+import chess.ChessGame;
 import client.ServerFacade;
 import model.GameData;
 import java.util.List;
@@ -128,9 +129,14 @@ public class AfterLoginREPL {
             }
 
             GameData selectedGame = games.get(selection);
+
             if (role.equals("observer")) {
                 facade.observeGame(selectedGame.gameID());
                 System.out.println("Now observing game: " + selectedGame.gameName());
+
+                ChessGame game = new ChessGame();
+                PrintBoard.printWhiteBoard(game);
+
             } else {
                 System.out.print("Choose color (WHITE or BLACK): ");
                 String color = scanner.nextLine().toUpperCase();
@@ -138,15 +144,22 @@ public class AfterLoginREPL {
                     System.out.println("Invalid color.");
                     return;
                 }
+
                 facade.joinGame(selectedGame.gameID(), color);
                 System.out.println("Joined game: " + selectedGame.gameName() + " as " + color);
-            }
 
-            // Placeholder for future board rendering
-            System.out.println("\n[Initial Chessboard Display Here]\n");
+                ChessGame game = new ChessGame();
+
+                if (color.equals("WHITE")) {
+                    PrintBoard.printWhiteBoard(game);
+                } else {
+                    PrintBoard.printBlackBoard(game);
+                }
+            }
 
         } catch (Exception e) {
             System.out.println("Failed to " + role + " game: " + e.getMessage());
         }
     }
+
 }
