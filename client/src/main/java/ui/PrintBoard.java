@@ -33,7 +33,7 @@ public class PrintBoard {
         System.out.print("   ");
         for (int col = colStart; col != colEnd; col += colStep) {
             char colLabel = (char) ('a' + col - 1);
-            System.out.print(" " + colLabel + " ");
+            System.out.print(" " + colLabel + "\u2003");
         }
         System.out.println();
 
@@ -59,7 +59,9 @@ public class PrintBoard {
         System.out.print("   ");
         for (int col = colStart; col != colEnd; col += colStep) {
             char colLabel = (char) ('a' + col - 1);
-            System.out.print(" " + colLabel + " ");
+            System.out.print(" " + colLabel + "\u2003");
+
+
         }
         System.out.println();
     }
