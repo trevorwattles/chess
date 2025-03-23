@@ -137,4 +137,5 @@ public class MySQLGameDAO implements GameDAO {
         }
         throw new SQLException("Failed to generate next game id");
     }
+
 }

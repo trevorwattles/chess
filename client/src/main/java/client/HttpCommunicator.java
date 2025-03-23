@@ -71,7 +71,6 @@ public class HttpCommunicator {
             http.setRequestMethod(method);
             http.setDoOutput(true);
 
-            // ⬇️ Add token if it's available
             if (authToken != null && !authToken.isEmpty()) {
                 http.setRequestProperty("Authorization", authToken);
             }

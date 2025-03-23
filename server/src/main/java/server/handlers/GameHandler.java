@@ -93,10 +93,13 @@ public class GameHandler {
                 return gson.toJson(Map.of("message", "Error: bad request"));
             }
 
-            if (!playerColor.equalsIgnoreCase("WHITE") && !playerColor.equalsIgnoreCase("BLACK")) {
+            if (!playerColor.equalsIgnoreCase("WHITE") &&
+                    !playerColor.equalsIgnoreCase("BLACK") &&
+                    !playerColor.equalsIgnoreCase("OBSERVER")) {
                 resp.status(400);
                 return gson.toJson(Map.of("message", "Error: invalid color choice"));
             }
+
 
             int gameID = gameIDDouble.intValue();
             boolean success = gameService.joinGame(authToken, gameID, playerColor);

@@ -93,16 +93,26 @@ public class GameService {
             throw new DataAccessException("Error: game not found");
         }
 
+        // Allow observers without modifying the game state
+        if ("OBSERVER".equalsIgnoreCase(color)) {
+            // Simply return true; they are allowed to observe
+            return true;
+        }
+
+        // Validate color
         if (!"WHITE".equalsIgnoreCase(color) && !"BLACK".equalsIgnoreCase(color)) {
             throw new DataAccessException("Error: invalid color choice");
         }
 
+        // Join as WHITE
         if ("WHITE".equalsIgnoreCase(color)) {
             if (game.whiteUsername() != null) {
                 throw new DataAccessException("Error: white seat already taken");
             }
             game = new GameData(game.gameID(), authData.username(), game.blackUsername(), game.gameName(), game.game());
-        } else {
+        }
+        // Join as BLACK
+        else {
             if (game.blackUsername() != null) {
                 throw new DataAccessException("Error: black seat already taken");
             }
@@ -110,7 +120,6 @@ public class GameService {
         }
 
         gameDAO.updateGame(game);
-
         return true;
     }
 
