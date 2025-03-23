@@ -99,10 +99,13 @@ public class ServerFacadeTests {
 
     @Test
     public void testLogoutWithoutLogin() {
-        Assertions.assertThrows(ResponseException.class, () -> {
-            serverFacade.logout();  // This should now actually run and potentially throw
+        ResponseException exception = Assertions.assertThrows(ResponseException.class, () -> {
+            serverFacade.logout();
         });
+
+        Assertions.assertEquals(401, exception.getStatusCode());
     }
+
 
 
     @Test
