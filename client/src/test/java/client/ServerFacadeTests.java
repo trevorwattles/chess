@@ -100,8 +100,10 @@ public class ServerFacadeTests {
     @Test
     public void testLogoutWithoutLogin() {
         Assertions.assertThrows(ResponseException.class, () -> {
+            serverFacade.logout();  // This should now actually run and potentially throw
         });
     }
+
 
     @Test
     public void testCreateGameSuccess() throws ResponseException {

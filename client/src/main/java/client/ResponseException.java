@@ -1,14 +1,12 @@
 package client;
 
 public class ResponseException extends Exception {
-    final private int status;
+
+    private final int statusCode;
 
     public ResponseException(int statusCode, String message) {
         super(message);
-        this.status = statusCode;
+        this.statusCode = statusCode;
     }
 
-    public int statusCode() {
-        return status;
-    }
 }
