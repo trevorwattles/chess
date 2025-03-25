@@ -102,7 +102,6 @@ public class ServerFacadeTests {
         ResponseException exception = Assertions.assertThrows(ResponseException.class, () -> {
             serverFacade.logout();
         });
-
         Assertions.assertEquals(401, exception.getStatusCode());
     }
 

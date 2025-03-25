@@ -42,7 +42,7 @@ public class PrintBoard {
 
             for (int col = colStart; col != colEnd; col += colStep) {
                 ChessPiece piece = board.getPiece(new ChessPosition(row, col));
-                boolean isLightSquare = (row + col) % 2 == 0;
+                boolean isLightSquare = whitePerspective ? (row + col) % 2 != 0 : (row + col) % 2 == 0;
                 String bg = isLightSquare ? SET_BG_COLOR_LIGHT_GREY : SET_BG_COLOR_DARK_GREY;
 
                 if (piece == null) {

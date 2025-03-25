@@ -122,9 +122,18 @@ public class AfterLoginREPL {
                 System.out.printf("%d. %s\n", i + 1, g.gameName());
             }
 
-            int selection = Integer.parseInt(scanner.nextLine()) - 1;
-            if (selection < 0 || selection >= games.size()) {
-                System.out.println("Invalid selection.");
+            System.out.print("> ");
+            String input = scanner.nextLine();
+            int selection;
+
+            try {
+                selection = Integer.parseInt(input) - 1;
+                if (selection < 0 || selection >= games.size()) {
+                    System.out.println("Failed to join game \"" + input + "\". Does not exist.");
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Failed to join game \"" + input + "\". Does not exist.");
                 return;
             }
 
@@ -161,5 +170,4 @@ public class AfterLoginREPL {
             System.out.println("Failed to " + role + " game: " + e.getMessage());
         }
     }
-
 }
