@@ -9,15 +9,12 @@ import service.GameService;
 import service.UserService;
 import spark.*;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class Server {
 
-    public static Map<Integer, Map<String, Session>> sessionGameMap = new ConcurrentHashMap<>();
 
-    public static Map<String, Integer> authDataGameMap = new ConcurrentHashMap<>();
-
+    public static UserService userService;
+    public static GameService gameService;
     UserHandler userHandler;
     GameHandler gameHandler;
     ClearHandler clearHandler;
@@ -30,6 +27,9 @@ public class Server {
         this.authDAO = new MySQLAuthDAO();
         this.gameDAO = new MySQLGameDAO();
         this.userDAO = new MySQLUserDAO();
+
+        userService = new UserService(userDAO, authDAO);
+        gameService = new GameService(gameDAO, authDAO);
 
         this.userHandler = new UserHandler(userDAO, authDAO);
         this.clearHandler = new ClearHandler(userDAO, authDAO, gameDAO);
