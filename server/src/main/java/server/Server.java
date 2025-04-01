@@ -5,9 +5,18 @@ import org.eclipse.jetty.websocket.server.WebSocketHandler;
 import server.handlers.ClearHandler;
 import server.handlers.GameHandler;
 import server.handlers.UserHandler;
+import service.GameService;
+import service.UserService;
 import spark.*;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 public class Server {
+
+    public static Map<Integer, Map<String, Session>> sessionGameMap = new ConcurrentHashMap<>();
+
+    public static Map<String, Integer> authDataGameMap = new ConcurrentHashMap<>();
 
     UserHandler userHandler;
     GameHandler gameHandler;
