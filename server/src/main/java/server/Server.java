@@ -1,10 +1,10 @@
 package server;
 
 import dataaccess.*;
+import org.eclipse.jetty.websocket.server.WebSocketHandler;
 import server.handlers.ClearHandler;
 import server.handlers.GameHandler;
 import server.handlers.UserHandler;
-import service.ClearService;
 import spark.*;
 
 public class Server {
@@ -30,6 +30,8 @@ public class Server {
     public int run(int desiredPort) {
         Spark.port(desiredPort);
         Spark.staticFiles.location("web");
+
+        Spark.webSocket("/ws", server.handlers.WebsocketHandler.class);
 
         Spark.delete("/db", clearHandler::clear);
         Spark.post("/user", userHandler::register);
