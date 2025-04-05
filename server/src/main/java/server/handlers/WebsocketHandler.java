@@ -154,12 +154,45 @@ public class WebsocketHandler {
     }
 
     private void handleLeaveCommand(Session session, LeaveCommand cmd) {
-        // Implement leave logic here.
+        try {
+            AuthData auth = Server.userService.getAuthData(cmd.getAuthToken());
+            GameData game = Server.gameService.getGameData(cmd.getAuthToken(), cmd.getGameID());
+            String username = auth.username();
+            Map<String, Object> notif = new ConcurrentHashMap<>();
+            notif.put("serverMessageType", ServerMessage.ServerMessageType.NOTIFICATION);
+            notif.put("message", username + " has left the game.");
+            broadcastMessage(session, notif, true);
+            Server.gameSessionsMap.remove(session);
+            Server.gameService.updateGame(cmd.getAuthToken(), game);
+        } catch(Exception e) {
+            sendError(session, "Error processing leave command", e);
+        }
     }
 
+
     private void handleResignCommand(Session session, ResignCommand cmd) {
-        // Implement resign logic here.
+        try {
+            AuthData auth = Server.userService.getAuthData(cmd.getAuthToken());
+            GameData game = Server.gameService.getGameData(cmd.getAuthToken(), cmd.getGameID());
+            ChessGame chessGame = game.game();
+            ChessGame.TeamColor playerColor = getPlayerColor(auth.username(), game);
+            if (playerColor == null) {
+                sendError(session, "Error: Observers cannot resign", new Exception("Observer resignation attempted"));
+                return;
+            }
+            chessGame.setOver(true);
+            ChessGame.TeamColor oppColor = (playerColor == ChessGame.TeamColor.WHITE) ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE;
+            String notificationText = auth.username() + " has resigned. Team " + oppColor + " wins!";
+            Map<String, Object> notif = new ConcurrentHashMap<>();
+            notif.put("serverMessageType", ServerMessage.ServerMessageType.NOTIFICATION);
+            notif.put("message", notificationText);
+            broadcastMessage(session, notif, true);
+            Server.gameService.updateGame(cmd.getAuthToken(), game);
+        } catch(Exception e) {
+            sendError(session, "Error processing resign command", e);
+        }
     }
+
 
     public void sendMessage(Session session, Object messageObj) throws IOException {
         String json = gson.toJson(messageObj);
