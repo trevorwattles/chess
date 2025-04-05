@@ -21,8 +21,6 @@ public class WebsocketHandler {
 
     @OnWebSocketConnect
     public void onConnect(Session session) {
-        // Instead of maintaining a local sessions list, update the Server's gameSessionsMap.
-        // For initial connection, you can set gameID to 0 (or another default value).
         Server.gameSessionsMap.put(session, 0);
         System.out.println("New connection: " + session.getRemoteAddress().getAddress());
 
@@ -110,7 +108,49 @@ public class WebsocketHandler {
 
 
     private void handleMoveCommand(Session session, MoveCommand cmd) {
-        // Implement move logic here.
+        try {
+            AuthData auth = Server.userService.getAuthData(cmd.getAuthToken());
+            GameData game = Server.gameService.getGameData(cmd.getAuthToken(), cmd.getGameID());
+            ChessGame chessGame = game.game();
+            ChessGame.TeamColor playerColor = getPlayerColor(auth.username(), game);
+            if(playerColor == null){
+                sendError(session, "Error: Observers cannot make moves", new Exception("Observer move attempted"));
+                return;
+            }
+            if(chessGame.isOver()){
+                sendError(session, "Error: Game is already over", new Exception("Game over"));
+                return;
+            }
+            if(!chessGame.getTeamTurn().equals(playerColor)){
+                sendError(session, "Error: It is not your turn", new Exception("Wrong turn"));
+                return;
+            }
+            chessGame.makeMove(cmd.getMove());
+            ChessGame.TeamColor oppColor = (playerColor == ChessGame.TeamColor.WHITE) ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE;
+            String notificationText;
+            if(chessGame.isInCheckmate(oppColor)){
+                chessGame.setOver(true);
+                notificationText = "Checkmate! " + auth.username() + " wins!";
+            } else if(chessGame.isInStalemate(oppColor)){
+                chessGame.setOver(true);
+                notificationText = "Stalemate! The game is a draw.";
+            } else if(chessGame.isInCheck(oppColor)){
+                notificationText = "Check! " + oppColor + " is in check.";
+            } else {
+                notificationText = auth.username() + " has made a move.";
+            }
+            Map<String, Object> notif = new ConcurrentHashMap<>();
+            notif.put("serverMessageType", ServerMessage.ServerMessageType.NOTIFICATION);
+            notif.put("message", notificationText);
+            broadcastMessage(session, notif, true);
+            Map<String, Object> loadGameMessage = new ConcurrentHashMap<>();
+            loadGameMessage.put("serverMessageType", ServerMessage.ServerMessageType.LOAD_GAME);
+            loadGameMessage.put("game", chessGame);
+            broadcastMessage(session, loadGameMessage, true);
+            Server.gameService.updateGame(cmd.getAuthToken(), game);
+        } catch(Exception e) {
+            sendError(session, "Error processing move", e);
+        }
     }
 
     private void handleLeaveCommand(Session session, LeaveCommand cmd) {
@@ -153,4 +193,14 @@ public class WebsocketHandler {
             System.err.println("Error sending error message: " + ex.getMessage());
         }
     }
+    private ChessGame.TeamColor getPlayerColor(String username, GameData game) {
+        if (game.whiteUsername() != null && game.whiteUsername().equals(username)) {
+            return ChessGame.TeamColor.WHITE;
+        } else if (game.blackUsername() != null && game.blackUsername().equals(username)) {
+            return ChessGame.TeamColor.BLACK;
+        } else {
+            return null;
+        }
+    }
+
 }

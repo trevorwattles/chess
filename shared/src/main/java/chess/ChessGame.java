@@ -216,6 +216,13 @@ public class ChessGame {
         return board;
     }
 
+    public boolean isOver() {
+        return gameOver;
+    }
+
+    public void setOver(boolean over) {
+        gameOver = over;
+    }
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
