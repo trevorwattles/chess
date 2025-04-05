@@ -83,8 +83,6 @@ public class WebsocketHandler {
             AuthData auth = Server.userService.getAuthData(cmd.getAuthToken());
             GameData game = Server.gameService.getGameData(cmd.getAuthToken(), cmd.getGameID());
 
-            Server.gameSessionsMap.put(session, cmd.getGameID());
-
             String role;
             if (auth.username().equals(game.whiteUsername())) {
                 role = "white";
@@ -97,16 +95,19 @@ public class WebsocketHandler {
             Map<String, Object> notif = new ConcurrentHashMap<>();
             notif.put("serverMessageType", ServerMessage.ServerMessageType.NOTIFICATION);
             notif.put("message", auth.username() + " has joined the game as " + role);
-            session.getRemote().sendString(gson.toJson(notif));
+
+            broadcastMessage(session, notif, true);
 
             Map<String, Object> loadGameMessage = new ConcurrentHashMap<>();
             loadGameMessage.put("serverMessageType", ServerMessage.ServerMessageType.LOAD_GAME);
             loadGameMessage.put("game", game.game());
-            session.getRemote().sendString(gson.toJson(loadGameMessage));
+
+            sendMessage(session, loadGameMessage);
         } catch (Exception e) {
             sendError(session, "Error while sending game data", e);
         }
     }
+
 
     private void handleMoveCommand(Session session, MoveCommand cmd) {
         // Implement move logic here.
