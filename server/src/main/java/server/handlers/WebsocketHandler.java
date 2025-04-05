@@ -51,6 +51,7 @@ public class WebsocketHandler {
             switch (baseCommand.getCommandType()) {
                 case CONNECT -> {
                     ConnectCommand connectCommand = gson.fromJson(message, ConnectCommand.class);
+                    System.out.println("Parsed gameID: " + connectCommand.getGameID());
                     int gameID = connectCommand.getGameID();
                     Server.gameSessionsMap.replace(session, gameID);
                     handleConnectCommand(session, connectCommand);
@@ -76,11 +77,10 @@ public class WebsocketHandler {
         }
     }
 
-    private void handleConnectCommand(Session session, ConnectCommand cmd) {
+    private void handleConnectCommand(Session session, ConnectCommand cmd) throws IOException {
         try {
             AuthData auth = Server.userService.getAuthData(cmd.getAuthToken());
             GameData game = Server.gameService.getGameData(cmd.getAuthToken(), cmd.getGameID());
-
             String role;
             if (auth.username().equals(game.whiteUsername())) {
                 role = "white";
@@ -89,22 +89,17 @@ public class WebsocketHandler {
             } else {
                 role = "observer";
             }
-
-            Map<String, Object> notif = new ConcurrentHashMap<>();
-            notif.put("serverMessageType", ServerMessage.ServerMessageType.NOTIFICATION);
-            notif.put("message", auth.username() + " has joined the game as " + role);
-
+            Notification notif = new Notification("%s has joined the game as %s".formatted(auth.username(), role));
             broadcastMessage(session, notif, true);
-
-            Map<String, Object> loadGameMessage = new ConcurrentHashMap<>();
-            loadGameMessage.put("serverMessageType", ServerMessage.ServerMessageType.LOAD_GAME);
-            loadGameMessage.put("game", game.game());
-
-            sendMessage(session, loadGameMessage);
+            LoadGame load = new LoadGame(game.game());
+            sendMessage(session, load);
         } catch (Exception e) {
-            sendError(session, "Error while sending game data", e);
+            sendError(session, "Error: Not authorized", e);
         }
     }
+
+
+
 
 
     private void handleMoveCommand(Session session, MoveCommand cmd) {
