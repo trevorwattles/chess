@@ -2,12 +2,15 @@ package server;
 
 import dataaccess.*;
 import org.eclipse.jetty.websocket.server.WebSocketHandler;
+import org.eclipse.jetty.websocket.api.Session;
 import server.handlers.ClearHandler;
 import server.handlers.GameHandler;
 import server.handlers.UserHandler;
 import service.GameService;
 import service.UserService;
 import spark.*;
+
+import java.util.concurrent.ConcurrentHashMap;
 
 
 public class Server {
@@ -22,6 +25,9 @@ public class Server {
     AuthDAO authDAO;
     GameDAO gameDAO;
     UserDAO userDAO;
+
+
+    public static ConcurrentHashMap<Session, Integer> gameSessionsMap = new ConcurrentHashMap<>();
 
     public Server() {
         this.authDAO = new MySQLAuthDAO();

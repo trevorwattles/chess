@@ -11,23 +11,19 @@ import server.Server;
 import websocket.commands.*;
 import websocket.messages.*;
 
-import javax.management.Notification;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 @WebSocket
 public class WebsocketHandler {
     private static final Gson gson = new Gson();
-    private static final List<Session> sessions = new CopyOnWriteArrayList<>();
-    private static final Map<Session, Integer> gameSessions = new ConcurrentHashMap<>();
 
     @OnWebSocketConnect
     public void onConnect(Session session) {
-        sessions.add(session);
-        gameSessions.put(session, 0);
+        // Instead of maintaining a local sessions list, update the Server's gameSessionsMap.
+        // For initial connection, you can set gameID to 0 (or another default value).
+        Server.gameSessionsMap.put(session, 0);
         System.out.println("New connection: " + session.getRemoteAddress().getAddress());
 
         Map<String, Object> welcomeMessage = new ConcurrentHashMap<>();
@@ -41,26 +37,44 @@ public class WebsocketHandler {
         }
     }
 
-
     @OnWebSocketClose
     public void onClose(Session session, int statusCode, String reason) {
-        sessions.remove(session);
-        gameSessions.remove(session);
+        Server.gameSessionsMap.remove(session);
         System.out.println("Connection closed: " + session.getRemoteAddress().getAddress() +
                 " - Code: " + statusCode + ", Reason: " + reason);
     }
 
     @OnWebSocketMessage
-    public void onMessage(Session session, String message) throws DataAccessException {
+    public void onMessage(Session session, String message) {
         System.out.println("Received: " + message);
-        UserGameCommand baseCommand = gson.fromJson(message, UserGameCommand.class);
+        try {
+            UserGameCommand baseCommand = gson.fromJson(message, UserGameCommand.class);
 
-        switch (baseCommand.getCommandType()) {
-            case CONNECT -> handleConnectCommand(session, gson.fromJson(message, ConnectCommand.class));
-            case MAKE_MOVE -> handleMoveCommand(session, gson.fromJson(message, MoveCommand.class));
-            case LEAVE -> handleLeaveCommand(session, gson.fromJson(message, LeaveCommand.class));
-            case RESIGN -> handleResignCommand(session, gson.fromJson(message, ResignCommand.class));
-            default -> System.out.println("Unknown command received.");
+            switch (baseCommand.getCommandType()) {
+                case CONNECT -> {
+                    ConnectCommand connectCommand = gson.fromJson(message, ConnectCommand.class);
+                    int gameID = connectCommand.getGameID();
+                    Server.gameSessionsMap.replace(session, gameID);
+                    handleConnectCommand(session, connectCommand);
+                }
+                case MAKE_MOVE -> {
+                    MoveCommand moveCommand = gson.fromJson(message, MoveCommand.class);
+                    handleMoveCommand(session, moveCommand);
+                }
+                case LEAVE -> {
+                    LeaveCommand leaveCommand = gson.fromJson(message, LeaveCommand.class);
+                    handleLeaveCommand(session, leaveCommand);
+                    Server.gameSessionsMap.remove(session);
+                }
+                case RESIGN -> {
+                    ResignCommand resignCommand = gson.fromJson(message, ResignCommand.class);
+                    handleResignCommand(session, resignCommand);
+                }
+                default -> System.out.println("Unknown command received.");
+            }
+        } catch (Exception e) {
+            System.err.println("Error processing message: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -69,7 +83,7 @@ public class WebsocketHandler {
             AuthData auth = Server.userService.getAuthData(cmd.getAuthToken());
             GameData game = Server.gameService.getGameData(cmd.getAuthToken(), cmd.getGameID());
 
-            gameSessions.put(session, cmd.getGameID());
+            Server.gameSessionsMap.put(session, cmd.getGameID());
 
             String role;
             if (auth.username().equals(game.whiteUsername())) {
@@ -80,47 +94,62 @@ public class WebsocketHandler {
                 role = "observer";
             }
 
-            // Manually send the notification message
             Map<String, Object> notif = new ConcurrentHashMap<>();
             notif.put("serverMessageType", ServerMessage.ServerMessageType.NOTIFICATION);
             notif.put("message", auth.username() + " has joined the game as " + role);
             session.getRemote().sendString(gson.toJson(notif));
 
-            // Manually send the load game message
             Map<String, Object> loadGameMessage = new ConcurrentHashMap<>();
             loadGameMessage.put("serverMessageType", ServerMessage.ServerMessageType.LOAD_GAME);
             loadGameMessage.put("game", game.game());
             session.getRemote().sendString(gson.toJson(loadGameMessage));
         } catch (Exception e) {
-            sendError(session, "Error: " + e.getMessage());
+            sendError(session, "Error while sending game data", e);
         }
     }
 
-
-
-
     private void handleMoveCommand(Session session, MoveCommand cmd) {
-
+        // Implement move logic here.
     }
 
     private void handleLeaveCommand(Session session, LeaveCommand cmd) {
-
+        // Implement leave logic here.
     }
 
     private void handleResignCommand(Session session, ResignCommand cmd) {
-
+        // Implement resign logic here.
     }
 
+    public void sendMessage(Session session, Object messageObj) throws IOException {
+        String json = gson.toJson(messageObj);
+        session.getRemote().sendString(json);
+    }
 
-    private void sendError(Session session, String errorMessage) {
+    public void broadcastMessage(Session sender, Object messageObj, boolean includeSender) throws IOException {
+        Integer gameID = Server.gameSessionsMap.get(sender);
+        if (gameID == null) {
+            System.err.println("Sender session not associated with any game.");
+            return;
+        }
+
+        String json = gson.toJson(messageObj);
+        for (Session session : Server.gameSessionsMap.keySet()) {
+            if (Server.gameSessionsMap.get(session).equals(gameID)) {
+                if (includeSender || !session.equals(sender)) {
+                    session.getRemote().sendString(json);
+                }
+            }
+        }
+    }
+    private void sendError(Session session, String errorMessage, Exception e) {
+        e.printStackTrace();
         Map<String, Object> error = new ConcurrentHashMap<>();
         error.put("serverMessageType", ServerMessage.ServerMessageType.ERROR);
         error.put("errorMessage", errorMessage);
         try {
             session.getRemote().sendString(gson.toJson(error));
-        } catch (IOException e) {
-            System.err.println("Error sending error message: " + e.getMessage());
+        } catch (IOException ex) {
+            System.err.println("Error sending error message: " + ex.getMessage());
         }
     }
-
 }
