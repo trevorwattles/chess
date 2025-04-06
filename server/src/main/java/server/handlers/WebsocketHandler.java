@@ -81,6 +81,18 @@ public class WebsocketHandler {
         try {
             AuthData auth = Server.userService.getAuthData(cmd.getAuthToken());
             GameData game = Server.gameService.getGameData(cmd.getAuthToken(), cmd.getGameID());
+
+            if (game.game() == null && game.whiteUsername() != null && game.blackUsername() != null) {
+                game = new GameData(
+                        game.gameID(),
+                        game.whiteUsername(),
+                        game.blackUsername(),
+                        game.gameName(),
+                        new ChessGame()
+                );
+                Server.gameService.updateGame(cmd.getAuthToken(), game);
+                System.out.println("✔ Initialized ChessGame for game ID: " + cmd.getGameID());
+            }
             String role;
             if (auth.username().equals(game.whiteUsername())) {
                 role = "white";
@@ -89,10 +101,13 @@ public class WebsocketHandler {
             } else {
                 role = "observer";
             }
+
             Notification notif = new Notification("%s has joined the game as %s".formatted(auth.username(), role));
             broadcastMessage(session, notif, true);
+
             LoadGame load = new LoadGame(game.game());
             sendMessage(session, load);
+
         } catch (Exception e) {
             sendError(session, "Error: Not authorized", e);
         }
@@ -100,53 +115,92 @@ public class WebsocketHandler {
 
 
 
-
-
     private void handleMoveCommand(Session session, MoveCommand cmd) {
+        System.out.println("handleMoveCommand called");
+        System.out.println("Command received: " + cmd);
+
         try {
             AuthData auth = Server.userService.getAuthData(cmd.getAuthToken());
             GameData game = Server.gameService.getGameData(cmd.getAuthToken(), cmd.getGameID());
-            ChessGame chessGame = game.game();
+
+            System.out.println("Fetched AuthData: " + auth);
+            System.out.println("Fetched GameData: " + game);
+            System.out.println("ChessGame from GameData: " + game.game());
+
+            if (game == null || game.game() == null) {
+                System.out.println("GameData or ChessGame is null — cannot proceed");
+                sendError(session, "Error: Game not found or not initialized", new Exception("Game or ChessGame is null"));
+                return;
+            }
+
             ChessGame.TeamColor playerColor = getPlayerColor(auth.username(), game);
-            if(playerColor == null){
+            System.out.println("Resolved player color: " + playerColor);
+
+            if (playerColor == null) {
+                System.out.println("Player is an observer — move not allowed");
                 sendError(session, "Error: Observers cannot make moves", new Exception("Observer move attempted"));
                 return;
             }
-            if(chessGame.isOver()){
+
+            if (game.game().isOver()) {
+                System.out.println("Game is already over");
                 sendError(session, "Error: Game is already over", new Exception("Game over"));
                 return;
             }
-            if(!chessGame.getTeamTurn().equals(playerColor)){
+
+            if (!game.game().getTeamTurn().equals(playerColor)) {
+                System.out.println("It is not the player's turn — current turn: " + game.game().getTeamTurn());
                 sendError(session, "Error: It is not your turn", new Exception("Wrong turn"));
                 return;
             }
-            chessGame.makeMove(cmd.getMove());
-            ChessGame.TeamColor oppColor = (playerColor == ChessGame.TeamColor.WHITE) ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE;
+
+            game.game().makeMove(cmd.getMove());
+            System.out.println("Move made by " + auth.username() + ": " + cmd.getMove());
+
+            ChessGame.TeamColor oppColor = (playerColor == ChessGame.TeamColor.WHITE)
+                    ? ChessGame.TeamColor.BLACK
+                    : ChessGame.TeamColor.WHITE;
+
             String notificationText;
-            if(chessGame.isInCheckmate(oppColor)){
-                chessGame.setOver(true);
+            if (game.game().isInCheckmate(oppColor)) {
+                game.game().setOver(true);
                 notificationText = "Checkmate! " + auth.username() + " wins!";
-            } else if(chessGame.isInStalemate(oppColor)){
-                chessGame.setOver(true);
+                System.out.println("Checkmate detected — " + auth.username() + " wins");
+            } else if (game.game().isInStalemate(oppColor)) {
+                game.game().setOver(true);
                 notificationText = "Stalemate! The game is a draw.";
-            } else if(chessGame.isInCheck(oppColor)){
+                System.out.println("Stalemate detected");
+            } else if (game.game().isInCheck(oppColor)) {
                 notificationText = "Check! " + oppColor + " is in check.";
+                System.out.println(oppColor + " is in check");
             } else {
                 notificationText = auth.username() + " has made a move.";
+                System.out.println("Normal move completed");
             }
+
+            System.out.println("Broadcasting notification: " + notificationText);
             Map<String, Object> notif = new ConcurrentHashMap<>();
             notif.put("serverMessageType", ServerMessage.ServerMessageType.NOTIFICATION);
             notif.put("message", notificationText);
             broadcastMessage(session, notif, true);
+
+            System.out.println("Broadcasting updated game state");
             Map<String, Object> loadGameMessage = new ConcurrentHashMap<>();
             loadGameMessage.put("serverMessageType", ServerMessage.ServerMessageType.LOAD_GAME);
-            loadGameMessage.put("game", chessGame);
+            loadGameMessage.put("game", game.game());
             broadcastMessage(session, loadGameMessage, true);
+
             Server.gameService.updateGame(cmd.getAuthToken(), game);
-        } catch(Exception e) {
+            System.out.println("handleMoveCommand completed successfully");
+
+        } catch (Exception e) {
+            System.out.println("Exception occurred during handleMoveCommand:");
+            e.printStackTrace();
             sendError(session, "Error processing move", e);
         }
     }
+
+
 
     private void handleLeaveCommand(Session session, LeaveCommand cmd) {
         try {
