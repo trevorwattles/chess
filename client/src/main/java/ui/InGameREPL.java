@@ -24,6 +24,44 @@ public class InGameREPL {
 
 
     public void run() {
+        out.println("You're now in the game! Type 'help' for available commands.");
+        boolean running = true;
+        Scanner scanner = new Scanner(System.in);
+
+        while (running) {
+            out.print("ingame> ");
+            String[] input = scanner.nextLine().trim().split("\\s+");
+            if (input.length == 0 || input[0].isEmpty()) continue;
+
+            switch (input[0].toLowerCase()) {
+                case "help" -> printHelp();
+                case "redraw" -> printBoard();
+                case "move" -> handleMove(input);
+                case "resign" -> {
+                    out.print("Are you sure you want to resign? (yes/no): ");
+                    String confirm = scanner.nextLine().trim().toLowerCase();
+                    if (confirm.equals("yes")) {
+                        // send a resign command over WebSocket here
+                        out.println("You resigned.");
+                        running = false;
+                    } else {
+                        out.println("Resignation cancelled.");
+                    }
+                }
+                case "leave" -> {
+                    // send leave command over WebSocket
+                    out.println("You left the game.");
+                    running = false;
+                }
+                case "highlight" -> handleHighlight(input);
+                default -> {
+                    out.println("Unknown command. Type 'help' for a list of commands.");
+                    printHelp();
+                }
+            }
+        }
+
+        new AfterLoginREPL(facade, new Scanner(System.in)).run();
 
     }
 
@@ -41,8 +79,13 @@ public class InGameREPL {
 
 
     private void printBoard() {
-
+        if (teamColor == ChessGame.TeamColor.WHITE) {
+            PrintBoard.printWhiteBoard(chessGame);
+        } else {
+            PrintBoard.printBlackBoard(chessGame);
+        }
     }
+
 
     private void handleMove(String[] input) {
 
