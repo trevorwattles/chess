@@ -3,6 +3,7 @@ package ui;
 import chess.*;
 import client.ServerFacade;
 import model.GameData;
+import websocket.commands.MoveCommand;
 
 import java.util.Scanner;
 
@@ -90,6 +91,7 @@ public class InGameREPL {
     private void handleMove(String[] input) {
 
     }
+
 
     private void handleHighlight(String[] input) {
 
