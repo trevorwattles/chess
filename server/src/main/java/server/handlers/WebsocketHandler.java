@@ -26,16 +26,6 @@ public class WebsocketHandler {
     public void onConnect(Session session) {
         Server.gameSessionsMap.put(session, 0);
         System.out.println("New connection: " + session.getRemoteAddress().getAddress());
-
-        Map<String, Object> welcomeMessage = new ConcurrentHashMap<>();
-        welcomeMessage.put("serverMessageType", ServerMessage.ServerMessageType.NOTIFICATION);
-        welcomeMessage.put("message", "Welcome!");
-
-        try {
-            session.getRemote().sendString(gson.toJson(welcomeMessage));
-        } catch (IOException e) {
-            System.err.println("Error sending welcome message: " + e.getMessage());
-        }
     }
 
     @OnWebSocketClose
@@ -50,7 +40,6 @@ public class WebsocketHandler {
         System.out.println("Received: " + message);
         try {
             UserGameCommand baseCommand = gson.fromJson(message, UserGameCommand.class);
-
             switch (baseCommand.getCommandType()) {
                 case CONNECT -> {
                     ConnectCommand connectCommand = gson.fromJson(message, ConnectCommand.class);
@@ -84,7 +73,6 @@ public class WebsocketHandler {
         try {
             AuthData auth = Server.userService.getAuthData(cmd.getAuthToken());
             GameData game = Server.gameService.getGameData(cmd.getAuthToken(), cmd.getGameID());
-
             if (game.game() == null && game.whiteUsername() != null && game.blackUsername() != null) {
                 game = new GameData(
                         game.gameID(),
@@ -104,60 +92,47 @@ public class WebsocketHandler {
             } else {
                 role = "observer";
             }
-
             Notification notif = new Notification("%s has joined the game as %s".formatted(auth.username(), role));
-            broadcastMessage(session, notif, true);
-
+            broadcastMessage(session, notif, false);
             LoadGame load = new LoadGame(game.game());
             sendMessage(session, load);
-
         } catch (Exception e) {
             sendError(session, "Error: Not authorized", e);
         }
     }
 
-
-
     private void handleMoveCommand(Session session, MoveCommand cmd) {
         try {
             AuthData auth = Server.userService.getAuthData(cmd.getAuthToken());
             GameData game = Server.gameService.getGameData(cmd.getAuthToken(), cmd.getGameID());
-
             if (game == null || game.game() == null) {
                 sendError(session, "Error: Game not found or not initialized", new Exception("Game or ChessGame is null"));
                 return;
             }
-
             ChessPosition start = new ChessPosition(
                     cmd.getMove().getStartPosition().getRow(),
-                    cmd.getMove().getStartPosition().getColumn() + 1);
+                    cmd.getMove().getStartPosition().getColumn());
             ChessPosition end = new ChessPosition(
                     cmd.getMove().getEndPosition().getRow(),
-                    cmd.getMove().getEndPosition().getColumn() + 1);
+                    cmd.getMove().getEndPosition().getColumn());
             ChessMove move = new ChessMove(start, end, cmd.getMove().getPromotionPiece());
-
             ChessGame.TeamColor playerColor = getPlayerColor(auth.username(), game);
             if (playerColor == null) {
                 sendError(session, "Error: Observers cannot make moves", new Exception("Observer move attempted"));
                 return;
             }
-
             if (game.game().isOver()) {
                 sendError(session, "Error: Game is already over", new Exception("Game over"));
                 return;
             }
-
             if (!game.game().getTeamTurn().equals(playerColor)) {
                 sendError(session, "Error: It is not your turn", new Exception("Wrong turn"));
                 return;
             }
-
             game.game().makeMove(move);
-
-            // Check post-move game state
+            // Check post-move state.
             ChessGame.TeamColor opponent = (playerColor == ChessGame.TeamColor.WHITE)
                     ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE;
-
             String notification;
             if (game.game().isInCheckmate(opponent)) {
                 game.game().setOver(true);
@@ -170,29 +145,21 @@ public class WebsocketHandler {
             } else {
                 notification = auth.username() + " has made a move.";
             }
-
-            // Send notification
+            // Broadcast move notification to everyone except the mover.
             Map<String, Object> notif = new ConcurrentHashMap<>();
             notif.put("serverMessageType", ServerMessage.ServerMessageType.NOTIFICATION);
             notif.put("message", notification);
-            broadcastMessage(session, notif, true);
-
-            // Send updated board state
+            broadcastMessage(session, notif, false);
+            // Broadcast updated game state to all (including sender).
             Map<String, Object> loadGameMessage = new ConcurrentHashMap<>();
             loadGameMessage.put("serverMessageType", ServerMessage.ServerMessageType.LOAD_GAME);
             loadGameMessage.put("game", game.game());
             broadcastMessage(session, loadGameMessage, true);
-
             Server.gameService.updateGame(cmd.getAuthToken(), game);
-
         } catch (Exception e) {
             sendError(session, "Error processing move", e);
         }
     }
-
-
-
-
 
     private void handleLeaveCommand(Session session, LeaveCommand cmd) {
         try {
@@ -202,7 +169,12 @@ public class WebsocketHandler {
             Map<String, Object> notif = new ConcurrentHashMap<>();
             notif.put("serverMessageType", ServerMessage.ServerMessageType.NOTIFICATION);
             notif.put("message", username + " has left the game.");
-            broadcastMessage(session, notif, true);
+            broadcastMessage(session, notif, false);
+            if (username.equals(game.whiteUsername())) {
+                game = new GameData(game.gameID(), null, game.blackUsername(), game.gameName(), game.game());
+            } else if (username.equals(game.blackUsername())) {
+                game = new GameData(game.gameID(), game.whiteUsername(), null, game.gameName(), game.game());
+            }
             Server.gameSessionsMap.remove(session);
             Server.gameService.updateGame(cmd.getAuthToken(), game);
         } catch(Exception e) {
@@ -210,19 +182,23 @@ public class WebsocketHandler {
         }
     }
 
-
     private void handleResignCommand(Session session, ResignCommand cmd) {
         try {
             AuthData auth = Server.userService.getAuthData(cmd.getAuthToken());
             GameData game = Server.gameService.getGameData(cmd.getAuthToken(), cmd.getGameID());
             ChessGame chessGame = game.game();
+            if (chessGame.isOver()) {
+                sendError(session, "Error: Game is already over", new Exception("Resign attempted after game over"));
+                return;
+            }
             ChessGame.TeamColor playerColor = getPlayerColor(auth.username(), game);
             if (playerColor == null) {
                 sendError(session, "Error: Observers cannot resign", new Exception("Observer resignation attempted"));
                 return;
             }
             chessGame.setOver(true);
-            ChessGame.TeamColor oppColor = (playerColor == ChessGame.TeamColor.WHITE) ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE;
+            ChessGame.TeamColor oppColor = (playerColor == ChessGame.TeamColor.WHITE)
+                    ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE;
             String notificationText = auth.username() + " has resigned. Team " + oppColor + " wins!";
             Map<String, Object> notif = new ConcurrentHashMap<>();
             notif.put("serverMessageType", ServerMessage.ServerMessageType.NOTIFICATION);
@@ -233,7 +209,6 @@ public class WebsocketHandler {
             sendError(session, "Error processing resign command", e);
         }
     }
-
 
     public void sendMessage(Session session, Object messageObj) throws IOException {
         String json = gson.toJson(messageObj);
@@ -246,7 +221,6 @@ public class WebsocketHandler {
             System.err.println("Sender session not associated with any game.");
             return;
         }
-
         String json = gson.toJson(messageObj);
         for (Session session : Server.gameSessionsMap.keySet()) {
             if (Server.gameSessionsMap.get(session).equals(gameID)) {
@@ -256,6 +230,7 @@ public class WebsocketHandler {
             }
         }
     }
+
     private void sendError(Session session, String errorMessage, Exception e) {
         e.printStackTrace();
         Map<String, Object> error = new ConcurrentHashMap<>();
@@ -267,6 +242,7 @@ public class WebsocketHandler {
             System.err.println("Error sending error message: " + ex.getMessage());
         }
     }
+
     private ChessGame.TeamColor getPlayerColor(String username, GameData game) {
         if (game.whiteUsername() != null && game.whiteUsername().equals(username)) {
             return ChessGame.TeamColor.WHITE;
@@ -276,5 +252,4 @@ public class WebsocketHandler {
             return null;
         }
     }
-
 }
