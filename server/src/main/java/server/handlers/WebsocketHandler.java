@@ -92,23 +92,43 @@ public class WebsocketHandler {
             } else {
                 role = "observer";
             }
-            Notification notif = new Notification("%s has joined the game as %s".formatted(auth.username(), role));
+            Notification notif = new Notification("%s has joined the game as %s"
+                    .formatted(auth.username(), role));
             broadcastMessage(session, notif, false);
             LoadGame load = new LoadGame(game.game());
             sendMessage(session, load);
+            if (game.whiteUsername() == null) {
+                Notification waiting = new Notification("Waiting for White to join...");
+                broadcastMessage(session, waiting, true);
+            }
+            else if (game.blackUsername() == null) {
+                Notification waiting = new Notification("Waiting for Black to join...");
+                broadcastMessage(session, waiting, true);
+            }
+            else {
+                Notification bothPresent = new Notification(
+                        "Both players have joined! It is " + game.game().getTeamTurn() + "'s turn."
+                );
+                broadcastMessage(session, bothPresent, true);
+            }
+            // ----------------------------------------------------------------
+
         } catch (Exception e) {
             sendError(session, "Error: Not authorized", e);
         }
     }
+
 
     private void handleMoveCommand(Session session, MoveCommand cmd) {
         try {
             AuthData auth = Server.userService.getAuthData(cmd.getAuthToken());
             GameData game = Server.gameService.getGameData(cmd.getAuthToken(), cmd.getGameID());
             if (game == null || game.game() == null) {
-                sendError(session, "Error: Game not found or not initialized", new Exception("Game or ChessGame is null"));
+                sendError(session, "Error: Game not found or not initialized",
+                        new Exception("Game or ChessGame is null"));
                 return;
             }
+
             ChessPosition start = new ChessPosition(
                     cmd.getMove().getStartPosition().getRow(),
                     cmd.getMove().getStartPosition().getColumn());
@@ -118,7 +138,8 @@ public class WebsocketHandler {
             ChessMove move = new ChessMove(start, end, cmd.getMove().getPromotionPiece());
             ChessGame.TeamColor playerColor = getPlayerColor(auth.username(), game);
             if (playerColor == null) {
-                sendError(session, "Error: Observers cannot make moves", new Exception("Observer move attempted"));
+                sendError(session, "Error: Observers cannot make moves",
+                        new Exception("Observer move attempted"));
                 return;
             }
             if (game.game().isOver()) {
@@ -129,10 +150,12 @@ public class WebsocketHandler {
                 sendError(session, "Error: It is not your turn", new Exception("Wrong turn"));
                 return;
             }
+
             game.game().makeMove(move);
-            // Check post-move state.
+
             ChessGame.TeamColor opponent = (playerColor == ChessGame.TeamColor.WHITE)
-                    ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE;
+                    ? ChessGame.TeamColor.BLACK
+                    : ChessGame.TeamColor.WHITE;
             String notification;
             if (game.game().isInCheckmate(opponent)) {
                 game.game().setOver(true);
@@ -145,21 +168,30 @@ public class WebsocketHandler {
             } else {
                 notification = auth.username() + " has made a move.";
             }
-            // Broadcast move notification to everyone except the mover.
+
             Map<String, Object> notif = new ConcurrentHashMap<>();
             notif.put("serverMessageType", ServerMessage.ServerMessageType.NOTIFICATION);
             notif.put("message", notification);
             broadcastMessage(session, notif, false);
-            // Broadcast updated game state to all (including sender).
+
             Map<String, Object> loadGameMessage = new ConcurrentHashMap<>();
             loadGameMessage.put("serverMessageType", ServerMessage.ServerMessageType.LOAD_GAME);
             loadGameMessage.put("game", game.game());
             broadcastMessage(session, loadGameMessage, true);
+            if (!game.game().isOver()) {
+                Map<String, Object> turnMessage = new ConcurrentHashMap<>();
+                turnMessage.put("serverMessageType", ServerMessage.ServerMessageType.NOTIFICATION);
+                turnMessage.put("message",
+                        "It is now " + game.game().getTeamTurn() + "'s turn.");
+                broadcastMessage(session, turnMessage, false);
+            }
             Server.gameService.updateGame(cmd.getAuthToken(), game);
+
         } catch (Exception e) {
             sendError(session, "Error processing move", e);
         }
     }
+
 
     private void handleLeaveCommand(Session session, LeaveCommand cmd) {
         try {
