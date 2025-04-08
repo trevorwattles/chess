@@ -4,8 +4,11 @@ import chess.*;
 
 import static chess.ChessGame.TeamColor.*;
 import static ui.EscapeSequences.*;
+import java.util.Set;
 
 public class PrintBoard {
+
+    private static final String HIGHLIGHT_BG_COLOR = SET_BG_COLOR_YELLOW;
 
     public static void printWhiteBoard(ChessGame game) {
         printBoard(game, WHITE);
@@ -75,5 +78,70 @@ public class PrintBoard {
             case KNIGHT -> (piece.getTeamColor() == WHITE ? WHITE_KNIGHT : BLACK_KNIGHT);
             case PAWN -> (piece.getTeamColor() == WHITE ? WHITE_PAWN : BLACK_PAWN);
         };
+    }
+    public static void printHighlightedWhiteBoard(ChessGame game, Set<ChessPosition> highlightedPositions) {
+        printHighlightedBoard(game, ChessGame.TeamColor.WHITE, highlightedPositions);
+    }
+
+    public static void printHighlightedBlackBoard(ChessGame game, Set<ChessPosition> highlightedPositions) {
+        printHighlightedBoard(game, ChessGame.TeamColor.BLACK, highlightedPositions);
+    }
+
+    private static void printHighlightedBoard(ChessGame game, ChessGame.TeamColor perspective, Set<ChessPosition> highlightedPositions) {
+        ChessBoard board = game.getBoard();
+
+        System.out.println(ERASE_SCREEN);
+
+        boolean whitePerspective = (perspective == ChessGame.TeamColor.WHITE);
+
+        int rowStart = whitePerspective ? 8 : 1;
+        int rowEnd = whitePerspective ? 0 : 9;
+        int rowStep = whitePerspective ? -1 : 1;
+
+        int colStart = whitePerspective ? 1 : 8;
+        int colEnd = whitePerspective ? 9 : 0;
+        int colStep = whitePerspective ? 1 : -1;
+
+        System.out.print("   ");
+        for (int col = colStart; col != colEnd; col += colStep) {
+            char colLabel = (char) ('a' + col - 1);
+            System.out.print(" " + colLabel + "\u2003");
+        }
+        System.out.println();
+
+        for (int row = rowStart; row != rowEnd; row += rowStep) {
+            System.out.print(" " + row + " ");
+
+            for (int col = colStart; col != colEnd; col += colStep) {
+                ChessPosition position = new ChessPosition(row, col);
+                ChessPiece piece = board.getPiece(position);
+                boolean isLightSquare = (row + col) % 2 != 0;
+                boolean isHighlighted = highlightedPositions.contains(position);
+
+                // Choose background color based on whether position is highlighted
+                String bg;
+                if (isHighlighted) {
+                    bg = HIGHLIGHT_BG_COLOR;
+                } else {
+                    bg = isLightSquare ? SET_BG_COLOR_LIGHT_GREY : SET_BG_COLOR_DARK_GREY;
+                }
+
+                if (piece == null) {
+                    System.out.print(bg + EMPTY + RESET_TEXT_COLOR + RESET_BG_COLOR);
+                } else {
+                    String symbol = getPieceSymbol(piece);
+                    System.out.print(bg + symbol + RESET_TEXT_COLOR + RESET_BG_COLOR);
+                }
+            }
+
+            System.out.println(" " + row);
+        }
+
+        System.out.print("   ");
+        for (int col = colStart; col != colEnd; col += colStep) {
+            char colLabel = (char) ('a' + col - 1);
+            System.out.print(" " + colLabel + "\u2003");
+        }
+        System.out.println();
     }
 }
