@@ -41,19 +41,33 @@ public class InGameREPL {
         });
 
 
-        // Handle errors
         communicator.setErrorHandler(errorMsg -> {
-            System.out.println("\nERROR: " + errorMsg);
+            String lower = errorMsg.toLowerCase();
+
+            if (lower.contains("check")) {
+                System.out.println("\nYou are in check — invalid move.");
+            } else if (lower.contains("not your turn")) {
+                System.out.println("\nIt's not your turn.");
+            } else if (lower.contains("observers cannot")) {
+                System.out.println("\nObservers cannot perform this action.");
+            } else if (lower.contains("game is already over")) {
+                System.out.println("\nThe game has already ended.");
+            } else if (lower.contains("invalid move")) {
+                System.out.println("\nInvalid move. Try again.");
+            } else {
+                System.out.println("\nERROR: " + errorMsg);
+            }
+
+            System.out.print("ingame> ");
         });
+
     }
 
     public void run() {
         try {
-            // Connect to the WebSocket server
             communicator.connect(gameID);
             System.out.println("Connected to game " + gameID);
 
-            // Draw the initial board immediately
             redrawBoard();
 
             printHelp();
@@ -241,7 +255,6 @@ public class InGameREPL {
         } else if (playerColor.equalsIgnoreCase("BLACK")) {
             printHighlightedBoard(currentGame, ChessGame.TeamColor.BLACK, highlightPositions);
         } else {
-            // Observer defaults to white perspective
             printHighlightedBoard(currentGame, ChessGame.TeamColor.WHITE, highlightPositions);
         }
 
