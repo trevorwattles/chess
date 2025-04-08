@@ -1,7 +1,9 @@
 package ui;
 
 import chess.ChessGame;
+import client.HttpCommunicator;
 import client.ServerFacade;
+import client.WebSocketCommunicator;
 import model.GameData;
 import java.util.List;
 import java.util.Scanner;
@@ -101,11 +103,108 @@ public class AfterLoginREPL {
     }
 
     private void handlePlayGame() {
-        handleJoinGame("player");
+        try {
+            List<GameData> games = facade.listGames();
+            if (games.isEmpty()) {
+                System.out.println("No games available.");
+                return;
+            }
+
+            System.out.println("Select a game number:");
+            for (int i = 0; i < games.size(); i++) {
+                GameData g = games.get(i);
+                System.out.printf("%d. %s\n", i + 1, g.gameName());
+            }
+
+            System.out.print("> ");
+            String input = scanner.nextLine();
+            int selection;
+
+            try {
+                selection = Integer.parseInt(input) - 1;
+                if (selection < 0 || selection >= games.size()) {
+                    System.out.println("Failed to join game \"" + input + "\". Does not exist.");
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Failed to join game \"" + input + "\". Does not exist.");
+                return;
+            }
+
+            GameData selectedGame = games.get(selection);
+
+            System.out.print("Choose color (WHITE or BLACK): ");
+            String color = scanner.nextLine().toUpperCase();
+            if (!color.equals("WHITE") && !color.equals("BLACK")) {
+                System.out.println("Invalid color.");
+                return;
+            }
+
+            facade.joinGame(selectedGame.gameID(), color);
+            System.out.println("Joined game: " + selectedGame.gameName() + " as " + color);
+
+            // Get the server URL from HttpCommunicator (add a getter in HttpCommunicator)
+            String serverUrl = ((HttpCommunicator)facade.getCommunicator()).getServerUrl();
+            String authToken = ((HttpCommunicator)facade.getCommunicator()).getAuthToken();
+
+            // Create WebSocketCommunicator
+            WebSocketCommunicator wsCommunicator = new WebSocketCommunicator(serverUrl, authToken);
+
+            // Start InGameREPL
+            new InGameREPL(scanner, wsCommunicator, selectedGame.gameID(), color).run();
+
+        } catch (Exception e) {
+            System.out.println("Failed to join game: " + e.getMessage());
+        }
     }
 
     private void handleObserveGame() {
-        handleJoinGame("observer");
+        try {
+            List<GameData> games = facade.listGames();
+            if (games.isEmpty()) {
+                System.out.println("No games available.");
+                return;
+            }
+
+            System.out.println("Select a game number to observe:");
+            for (int i = 0; i < games.size(); i++) {
+                GameData g = games.get(i);
+                System.out.printf("%d. %s\n", i + 1, g.gameName());
+            }
+
+            System.out.print("> ");
+            String input = scanner.nextLine();
+            int selection;
+
+            try {
+                selection = Integer.parseInt(input) - 1;
+                if (selection < 0 || selection >= games.size()) {
+                    System.out.println("Failed to observe game \"" + input + "\". Does not exist.");
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Failed to observe game \"" + input + "\". Does not exist.");
+                return;
+            }
+
+            GameData selectedGame = games.get(selection);
+
+            facade.observeGame(selectedGame.gameID());
+            System.out.println("Now observing game: " + selectedGame.gameName());
+
+            // Get the server URL from HttpCommunicator (add a getter in HttpCommunicator)
+            String serverUrl = ((HttpCommunicator) facade.getCommunicator()).getServerUrl();
+            String authToken = ((HttpCommunicator) facade.getCommunicator()).getAuthToken();
+
+            // Create WebSocketCommunicator
+            WebSocketCommunicator wsCommunicator = new WebSocketCommunicator(serverUrl, authToken);
+
+            // Start InGameREPL
+            new InGameREPL(scanner, wsCommunicator, selectedGame.gameID(), "OBSERVER").run();
+
+        } catch (Exception e) {
+            System.out.println("Failed to observe game: " + e.getMessage());
+        }
     }
 
     private void handleJoinGame(String role) {
