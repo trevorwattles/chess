@@ -62,6 +62,13 @@ public class HttpCommunicator {
     public void clear() throws ResponseException {
         this.makeRequest("DELETE", "/db", null, null);
     }
+    public String getServerUrl() {
+        return serverURL;
+    }
+
+    public static String getAuthToken() {
+        return authToken;
+    }
 
 
     private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass) throws ResponseException {
