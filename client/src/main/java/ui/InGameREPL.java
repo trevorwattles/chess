@@ -249,16 +249,13 @@ public class InGameREPL {
     }
 
     private void printHighlightedBoard(ChessGame game, ChessGame.TeamColor perspective, Set<ChessPosition> highlightPositions) {
-        // This would be similar to PrintBoard methods but with highlighting
-        // For now, just use regular board printing as a placeholder
-        // You'll need to implement a proper highlighted board display
-        System.out.println("Highlighted board would show here.");
         if (perspective == ChessGame.TeamColor.WHITE) {
-            PrintBoard.printWhiteBoard(game);
+            PrintBoard.printHighlightedWhiteBoard(game, highlightPositions);
         } else {
-            PrintBoard.printBlackBoard(game);
+            PrintBoard.printHighlightedBlackBoard(game, highlightPositions);
         }
     }
+
 
     private ChessPosition parsePosition(String posStr) {
         if (posStr == null || posStr.length() != 2) {
