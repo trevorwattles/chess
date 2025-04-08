@@ -49,6 +49,9 @@ public class ServerFacade {
         communicator.clear();
     }
 
+    public HttpCommunicator getCommunicator() {
+        return communicator;
+    }
 
 
 }
