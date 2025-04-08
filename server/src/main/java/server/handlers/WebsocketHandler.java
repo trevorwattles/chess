@@ -2,7 +2,6 @@ package server.handlers;
 
 import chess.*;
 import com.google.gson.Gson;
-import dataaccess.DataAccessException;
 import model.AuthData;
 import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
@@ -63,7 +62,7 @@ public class WebsocketHandler {
         }
     }
 
-    private void handleConnectCommand(Session session, ConnectCommand cmd) throws IOException {
+    private void handleConnectCommand(Session session, ConnectCommand cmd) {
         try {
             AuthData auth = Server.userService.getAuthData(cmd.getAuthToken());
             GameData game = Server.gameService.getGameData(cmd.getAuthToken(), cmd.getGameID());

@@ -143,14 +143,11 @@ public class AfterLoginREPL {
             facade.joinGame(selectedGame.gameID(), color);
             System.out.println("Joined game: " + selectedGame.gameName() + " as " + color);
 
-            // Get the server URL from HttpCommunicator (add a getter in HttpCommunicator)
-            String serverUrl = ((HttpCommunicator)facade.getCommunicator()).getServerUrl();
+            String serverUrl = facade.getCommunicator().getServerUrl();
             String authToken = ((HttpCommunicator)facade.getCommunicator()).getAuthToken();
 
-            // Create WebSocketCommunicator
             WebSocketCommunicator wsCommunicator = new WebSocketCommunicator(serverUrl, authToken);
 
-            // Start InGameREPL
             new InGameREPL(scanner, wsCommunicator, selectedGame.gameID(), color).run();
 
         } catch (Exception e) {
@@ -192,14 +189,11 @@ public class AfterLoginREPL {
             facade.observeGame(selectedGame.gameID());
             System.out.println("Now observing game: " + selectedGame.gameName());
 
-            // Get the server URL from HttpCommunicator (add a getter in HttpCommunicator)
-            String serverUrl = ((HttpCommunicator) facade.getCommunicator()).getServerUrl();
+            String serverUrl = facade.getCommunicator().getServerUrl();
             String authToken = ((HttpCommunicator) facade.getCommunicator()).getAuthToken();
 
-            // Create WebSocketCommunicator
             WebSocketCommunicator wsCommunicator = new WebSocketCommunicator(serverUrl, authToken);
 
-            // Start InGameREPL
             new InGameREPL(scanner, wsCommunicator, selectedGame.gameID(), "OBSERVER").run();
 
         } catch (Exception e) {
