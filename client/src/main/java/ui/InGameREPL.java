@@ -37,7 +37,6 @@ public class InGameREPL {
         // Handle notifications
         communicator.setNotificationHandler(message -> {
             System.out.println("\n" + message);
-            System.out.print("ingame> ");
         });
 
 
@@ -58,7 +57,6 @@ public class InGameREPL {
                 System.out.println("\nERROR: " + errorMsg);
             }
 
-            System.out.print("ingame> ");
         });
 
     }
@@ -109,7 +107,6 @@ public class InGameREPL {
         } else {
             PrintBoard.printWhiteBoard(currentGame);
         }
-        System.out.print("ingame> ");
     }
 
     private void processCommand(String input) {
