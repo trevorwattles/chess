@@ -1,109 +1,280 @@
 package ui;
 
 import chess.*;
-import client.ServerFacade;
-import model.GameData;
-import websocket.commands.MoveCommand;
+import client.WebSocketCommunicator;
 
-import java.util.Scanner;
-
-import static java.lang.System.out;
-
+import java.util.*;
 
 public class InGameREPL {
-   ServerFacade facade;
-   ChessGame chessGame;
-   int gameID;
-   public static ChessGame.TeamColor teamColor;
+    private final Scanner scanner;
+    private final WebSocketCommunicator communicator;
+    private final int gameID;
+    private final String playerColor; // "WHITE", "BLACK", or "OBSERVER"
+    private ChessGame currentGame;
+    private boolean running = true;
 
-    public InGameREPL(ServerFacade facade, GameData gameData, ChessGame.TeamColor teamColor) {
-        this.facade = facade;
-        this.chessGame = gameData.game();
-        this.gameID = gameData.gameID();
-        InGameREPL.teamColor = teamColor;
+    public InGameREPL(Scanner scanner, WebSocketCommunicator communicator, int gameID, String playerColor) {
+        this.scanner = scanner;
+        this.communicator = communicator;
+        this.gameID = gameID;
+        this.playerColor = playerColor;
+
+        // Initialize with a default chess game
+        this.currentGame = new ChessGame();
+
+        // Set up handlers for different message types
+        setupMessageHandlers();
     }
 
+    private void setupMessageHandlers() {
+        // Handle game updates (redraw board)
+        communicator.setGameUpdateHandler(game -> {
+            currentGame = game;
+            System.out.println("\nGame state updated");
+            redrawBoard();
+        });
+
+        // Handle notifications
+        communicator.setNotificationHandler(message -> {
+            System.out.println("\n" + message);
+            System.out.print("ingame> ");
+        });
+
+
+        // Handle errors
+        communicator.setErrorHandler(errorMsg -> {
+            System.out.println("\nERROR: " + errorMsg);
+        });
+    }
 
     public void run() {
-        out.println("You're now in the game! Type 'help' for available commands.");
-        boolean running = true;
-        Scanner scanner = new Scanner(System.in);
+        try {
+            // Connect to the WebSocket server
+            communicator.connect(gameID);
+            System.out.println("Connected to game " + gameID);
 
-        while (running) {
-            out.print("ingame> ");
-            String[] input = scanner.nextLine().trim().split("\\s+");
-            if (input.length == 0 || input[0].isEmpty()) continue;
+            // Draw the initial board immediately
+            redrawBoard();
 
-            switch (input[0].toLowerCase()) {
-                case "help" -> printHelp();
-                case "redraw" -> printBoard();
-                case "move" -> handleMove(input);
-                case "resign" -> {
-                    out.print("Are you sure you want to resign? (yes/no): ");
-                    String confirm = scanner.nextLine().trim().toLowerCase();
-                    if (confirm.equals("yes")) {
-                        // send a resign command over WebSocket here
-                        out.println("You resigned.");
-                        running = false;
-                    } else {
-                        out.println("Resignation cancelled.");
-                    }
-                }
-                case "leave" -> {
-                    // send leave command over WebSocket
-                    out.println("You left the game.");
-                    running = false;
-                }
-                case "highlight" -> handleHighlight(input);
-                default -> {
-                    out.println("Unknown command. Type 'help' for a list of commands.");
+            printHelp();
+
+            while (running) {
+                String input = scanner.nextLine().trim();
+                processCommand(input);
+                System.out.print("ingame> ");
+            }
+
+
+
+        } catch (Exception e) {
+            System.out.println("Error in game session: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void printHelp() {
+        System.out.println("\nAvailable commands:");
+        System.out.println("  help                           - Show this help message");
+        System.out.println("  redraw                         - Redraw the chess board");
+        System.out.println("  leave                          - Leave the game and return to main menu");
+        System.out.println("  move <from> <to>               - Make a move (e.g., 'move e2 e4')");
+        System.out.println("  resign                         - Resign from the game");
+        System.out.println("  highlight <position>           - Highlight legal moves for a piece (e.g., 'highlight e2')");
+    }
+
+    private void redrawBoard() {
+        if (currentGame == null) {
+            currentGame = new ChessGame();
+            System.out.println("Displaying initial board state.");
+        }
+
+        if (playerColor.equalsIgnoreCase("WHITE")) {
+            PrintBoard.printWhiteBoard(currentGame);
+        } else if (playerColor.equalsIgnoreCase("BLACK")) {
+            PrintBoard.printBlackBoard(currentGame);
+        } else {
+            PrintBoard.printWhiteBoard(currentGame);
+        }
+        System.out.print("ingame> ");
+    }
+
+    private void processCommand(String input) {
+        try {
+            String[] tokens = input.split("\\s+");
+            String command = tokens[0].toLowerCase();
+
+            switch (command) {
+                case "help":
                     printHelp();
+                    break;
+
+                case "redraw":
+                    redrawBoard();
+                    break;
+
+                case "leave":
+                    communicator.leaveGame(gameID);
+                    running = false;
+                    break;
+
+                case "move":
+                    if (playerColor.equalsIgnoreCase("OBSERVER")) {
+                        System.out.println("Observers cannot make moves.");
+                        return;
+                    }
+
+                    if (tokens.length != 3) {
+                        System.out.println("Invalid move format. Use: move <from> <to>");
+                        return;
+                    }
+
+                    handleMoveCommand(tokens[1], tokens[2]);
+                    break;
+
+                case "resign":
+                    if (playerColor.equalsIgnoreCase("OBSERVER")) {
+                        System.out.println("Observers cannot resign.");
+                        return;
+                    }
+
+                    System.out.print("Are you sure you want to resign? (y/n): ");
+                    String confirm = scanner.nextLine().trim().toLowerCase();
+                    if (confirm.startsWith("y")) {
+                        communicator.resignGame(gameID);
+                    }
+                    break;
+
+                case "highlight":
+                    if (tokens.length != 2) {
+                        System.out.println("Invalid highlight format. Use: highlight <position>");
+                        return;
+                    }
+
+                    highlightLegalMoves(tokens[1]);
+                    break;
+
+                default:
+                    System.out.println("Unknown command. Type 'help' for available commands.");
+            }
+        } catch (Exception e) {
+            System.out.println("Error processing command: " + e.getMessage());
+        }
+    }
+
+    private void handleMoveCommand(String fromStr, String toStr) throws Exception {
+        ChessPosition from = parsePosition(fromStr);
+        ChessPosition to = parsePosition(toStr);
+
+        if (from == null || to == null) {
+            System.out.println("Invalid position format. Use algebraic notation (e.g., 'e2')");
+            return;
+        }
+
+        ChessPiece.PieceType promotionPiece = null;
+        if (currentGame != null) {
+            ChessPiece piece = currentGame.getBoard().getPiece(from);
+            if (piece != null && piece.getPieceType() == ChessPiece.PieceType.PAWN) {
+                int lastRank = (piece.getTeamColor() == ChessGame.TeamColor.WHITE) ? 8 : 1;
+                if (to.getRow() == lastRank) {
+                    promotionPiece = promptForPromotion();
                 }
             }
         }
 
-        new AfterLoginREPL(facade, new Scanner(System.in)).run();
-
+        ChessMove move = new ChessMove(from, to, promotionPiece);
+        communicator.makeMove(gameID, move);
     }
 
+    private ChessPiece.PieceType promptForPromotion() {
+        while (true) {
+            System.out.print("Promote pawn to (Q)ueen, (R)ook, (B)ishop, or k(N)ight: ");
+            String input = scanner.nextLine().trim().toUpperCase();
 
-    private void printHelp() {
-        out.println("In-game commands:");
-        out.println("  help                 - Show this help message");
-        out.println("  redraw               - Redraw the chess board");
-        out.println("  move <from> <to>     - Move a piece (e.g., 'move a2 a3')");
-        out.println("  move <from> <to> <promotion> - Promote a pawn (e.g., 'move a7 a8 queen')");
-        out.println("  resign               - Resign from the current game");
-        out.println("  leave                - Leave the current game");
-        out.println("  highlight <position> - Show legal moves (e.g., 'highlight b1')");
-    }
+            if (input.isEmpty()) continue;
 
-
-    private void printBoard() {
-        if (teamColor == ChessGame.TeamColor.WHITE) {
-            PrintBoard.printWhiteBoard(chessGame);
-        } else {
-            PrintBoard.printBlackBoard(chessGame);
+            char choice = input.charAt(0);
+            switch (choice) {
+                case 'Q': return ChessPiece.PieceType.QUEEN;
+                case 'R': return ChessPiece.PieceType.ROOK;
+                case 'B': return ChessPiece.PieceType.BISHOP;
+                case 'N': return ChessPiece.PieceType.KNIGHT;
+                default:
+                    System.out.println("Invalid choice.");
+            }
         }
     }
 
+    private void highlightLegalMoves(String posStr) {
+        ChessPosition position = parsePosition(posStr);
 
-    private void handleMove(String[] input) {
+        if (position == null) {
+            System.out.println("Invalid position format. Use algebraic notation (e.g., 'e2')");
+            return;
+        }
 
+        if (currentGame == null) {
+            System.out.println("No game data available yet.");
+            return;
+        }
+
+        ChessPiece piece = currentGame.getBoard().getPiece(position);
+        if (piece == null) {
+            System.out.println("No piece at position " + posStr);
+            return;
+        }
+
+        Collection<ChessMove> legalMoves = currentGame.validMoves(position);
+        if (legalMoves.isEmpty()) {
+            System.out.println("No legal moves for piece at " + posStr);
+            return;
+        }
+
+        Set<ChessPosition> highlightPositions = new HashSet<>();
+        highlightPositions.add(position);
+
+        for (ChessMove move : legalMoves) {
+            highlightPositions.add(move.getEndPosition());
+        }
+
+        if (playerColor.equalsIgnoreCase("WHITE")) {
+            printHighlightedBoard(currentGame, ChessGame.TeamColor.WHITE, highlightPositions);
+        } else if (playerColor.equalsIgnoreCase("BLACK")) {
+            printHighlightedBoard(currentGame, ChessGame.TeamColor.BLACK, highlightPositions);
+        } else {
+            // Observer defaults to white perspective
+            printHighlightedBoard(currentGame, ChessGame.TeamColor.WHITE, highlightPositions);
+        }
+
+        System.out.println("Highlighted " + legalMoves.size() + " legal moves for " + piece.getPieceType() + " at " + posStr);
     }
 
-
-    private void handleHighlight(String[] input) {
-
+    private void printHighlightedBoard(ChessGame game, ChessGame.TeamColor perspective, Set<ChessPosition> highlightPositions) {
+        // This would be similar to PrintBoard methods but with highlighting
+        // For now, just use regular board printing as a placeholder
+        // You'll need to implement a proper highlighted board display
+        System.out.println("Highlighted board would show here.");
+        if (perspective == ChessGame.TeamColor.WHITE) {
+            PrintBoard.printWhiteBoard(game);
+        } else {
+            PrintBoard.printBlackBoard(game);
+        }
     }
 
-    private ChessPiece.PieceType getPiece(String name) {
-        return switch (name.toLowerCase()) {
-            case "queen" -> ChessPiece.PieceType.QUEEN;
-            case "rook" -> ChessPiece.PieceType.ROOK;
-            case "bishop" -> ChessPiece.PieceType.BISHOP;
-            case "knight" -> ChessPiece.PieceType.KNIGHT;
-            default -> null;
-        };
+    private ChessPosition parsePosition(String posStr) {
+        if (posStr == null || posStr.length() != 2) {
+            return null;
+        }
+
+        char file = Character.toLowerCase(posStr.charAt(0));
+        char rank = posStr.charAt(1);
+
+        if (file < 'a' || file > 'h' || rank < '1' || rank > '8') {
+            return null;
+        }
+
+        int col = file - 'a' + 1;  // Convert 'a'-'h' to 1-8
+        int row = rank - '0';      // Convert '1'-'8' to 1-8
+
+        return new ChessPosition(row, col);
     }
 }
