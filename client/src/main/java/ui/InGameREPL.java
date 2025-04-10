@@ -19,22 +19,18 @@ public class InGameREPL {
         this.gameID = gameID;
         this.playerColor = playerColor;
 
-        // Initialize with a default chess game
         this.currentGame = new ChessGame();
 
-        // Set up handlers for different message types
         setupMessageHandlers();
     }
 
     private void setupMessageHandlers() {
-        // Handle game updates (redraw board)
         communicator.setGameUpdateHandler(game -> {
             currentGame = game;
             System.out.println("\nGame state updated");
             redrawBoard();
         });
 
-        // Handle notifications
         communicator.setNotificationHandler(message -> {
             System.out.println("\n" + message);
         });

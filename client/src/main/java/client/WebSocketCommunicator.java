@@ -23,13 +23,11 @@ public class WebSocketCommunicator {
     private Session session;
     private final Gson gson = new Gson();
 
-    // Handlers for different types of server messages
     private Consumer<ChessGame> gameUpdateHandler;
     private Consumer<String> notificationHandler;
     private Consumer<String> errorHandler;
 
     public WebSocketCommunicator(String serverUrl, String authToken) {
-        // Convert http: to ws: for WebSocket URL
         this.serverUrl = serverUrl.replace("http:", "ws:") + "/ws";
         this.authToken = authToken;
     }
@@ -39,7 +37,6 @@ public class WebSocketCommunicator {
         GameplaySocket socket = new GameplaySocket();
         session = container.connectToServer(socket, new URI(serverUrl));
 
-        // Send CONNECT command once connected
         ConnectCommand connectCmd = new ConnectCommand(authToken, gameID);
         sendCommand(connectCmd);
     }
@@ -74,7 +71,6 @@ public class WebSocketCommunicator {
         session.getAsyncRemote().sendText(json);
     }
 
-    // Set handlers for different message types
     public void setGameUpdateHandler(Consumer<ChessGame> handler) {
         this.gameUpdateHandler = handler;
     }
@@ -102,7 +98,6 @@ public class WebSocketCommunicator {
         @OnMessage
         public void onMessage(String msg) {
             try {
-                // Parse the base message to determine its type
                 ServerMessage baseMessage = gson.fromJson(msg, ServerMessage.class);
 
                 switch (baseMessage.getServerMessageType()) {
