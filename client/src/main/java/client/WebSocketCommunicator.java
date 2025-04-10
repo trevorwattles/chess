@@ -41,12 +41,12 @@ public class WebSocketCommunicator {
         sendCommand(connectCmd);
     }
 
-    public void disconnect() throws Exception {
+    /*public void disconnect() throws Exception {
         if (session != null && session.isOpen()) {
             session.close();
         }
         session = null;
-    }
+    }*/
 
     public void makeMove(int gameID, ChessMove move) throws Exception {
         MoveCommand moveCmd = new MoveCommand(authToken, gameID, move);
@@ -90,10 +90,10 @@ public class WebSocketCommunicator {
             System.out.println("Connected to WebSocket server");
         }
 
-        @OnClose
+        /*@OnClose
         public void onClose(Session session, CloseReason closeReason) {
             System.out.println("WebSocket connection closed: " + closeReason.getReasonPhrase());
-        }
+        }*/
 
         @OnMessage
         public void onMessage(String msg) {
