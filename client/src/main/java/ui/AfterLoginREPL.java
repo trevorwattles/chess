@@ -96,7 +96,7 @@ public class AfterLoginREPL {
     private void handlePlayGame() {
         try {
             GameData selectedGame = promptForGameSelection("join");
-            if (selectedGame == null) return;
+            if (selectedGame == null) {return;}
 
             System.out.print("Choose color (WHITE or BLACK): ");
             String color = scanner.nextLine().toUpperCase();
@@ -122,7 +122,7 @@ public class AfterLoginREPL {
     private void handleObserveGame() {
         try {
             GameData selectedGame = promptForGameSelection("observe");
-            if (selectedGame == null) return;
+            if (selectedGame == null) {return;}
 
             facade.observeGame(selectedGame.gameID());
             System.out.println("Now observing game: " + selectedGame.gameName());

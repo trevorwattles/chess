@@ -9,9 +9,7 @@ import websocket.messages.*;
 import java.net.URI;
 import java.util.function.Consumer;
 import javax.websocket.ClientEndpoint;
-import javax.websocket.CloseReason;
 import javax.websocket.ContainerProvider;
-import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
@@ -41,12 +39,6 @@ public class WebSocketCommunicator {
         sendCommand(connectCmd);
     }
 
-    /*public void disconnect() throws Exception {
-        if (session != null && session.isOpen()) {
-            session.close();
-        }
-        session = null;
-    }*/
 
     public void makeMove(int gameID, ChessMove move) throws Exception {
         MoveCommand moveCmd = new MoveCommand(authToken, gameID, move);
@@ -89,11 +81,6 @@ public class WebSocketCommunicator {
         public void onOpen(Session session) {
             System.out.println("Connected to WebSocket server");
         }
-
-        /*@OnClose
-        public void onClose(Session session, CloseReason closeReason) {
-            System.out.println("WebSocket connection closed: " + closeReason.getReasonPhrase());
-        }*/
 
         @OnMessage
         public void onMessage(String msg) {
