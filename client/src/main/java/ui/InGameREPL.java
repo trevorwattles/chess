@@ -197,7 +197,7 @@ public class InGameREPL {
             System.out.print("Promote pawn to (Q)ueen, (R)ook, (B)ishop, or k(N)ight: ");
             String input = scanner.nextLine().trim().toUpperCase();
 
-            if (input.isEmpty()) continue;
+            if (input.isEmpty()) {continue;}
 
             char choice = input.charAt(0);
             switch (choice) {
