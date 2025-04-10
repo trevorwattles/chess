@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @WebSocket
 public class WebsocketHandler {
-    private static final Gson gson = new Gson();
+    private static final Gson GSON = new Gson();
 
     @OnWebSocketConnect
     public void onConnect(Session session) {
@@ -39,26 +39,26 @@ public class WebsocketHandler {
     public void onMessage(Session session, String message) {
         System.out.println("Received: " + message);
         try {
-            UserGameCommand baseCommand = gson.fromJson(message, UserGameCommand.class);
+            UserGameCommand baseCommand = GSON.fromJson(message, UserGameCommand.class);
             switch (baseCommand.getCommandType()) {
                 case CONNECT -> {
-                    ConnectCommand connectCommand = gson.fromJson(message, ConnectCommand.class);
+                    ConnectCommand connectCommand = GSON.fromJson(message, ConnectCommand.class);
                     System.out.println("Parsed gameID: " + connectCommand.getGameID());
                     int gameID = connectCommand.getGameID();
                     Server.gameSessionsMap.replace(session, gameID);
                     handleConnectCommand(session, connectCommand);
                 }
                 case MAKE_MOVE -> {
-                    MoveCommand moveCommand = gson.fromJson(message, MoveCommand.class);
+                    MoveCommand moveCommand = GSON.fromJson(message, MoveCommand.class);
                     handleMoveCommand(session, moveCommand);
                 }
                 case LEAVE -> {
-                    LeaveCommand leaveCommand = gson.fromJson(message, LeaveCommand.class);
+                    LeaveCommand leaveCommand = GSON.fromJson(message, LeaveCommand.class);
                     handleLeaveCommand(session, leaveCommand);
                     Server.gameSessionsMap.remove(session);
                 }
                 case RESIGN -> {
-                    ResignCommand resignCommand = gson.fromJson(message, ResignCommand.class);
+                    ResignCommand resignCommand = GSON.fromJson(message, ResignCommand.class);
                     handleResignCommand(session, resignCommand);
                 }
                 default -> System.out.println("Unknown command received.");
@@ -211,7 +211,7 @@ public class WebsocketHandler {
     }
 
     public void sendMessage(Session session, Object messageObj) throws IOException {
-        String json = gson.toJson(messageObj);
+        String json = GSON.toJson(messageObj);
         session.getRemote().sendString(json);
     }
 
@@ -221,7 +221,7 @@ public class WebsocketHandler {
             System.err.println("Sender session not associated with any game.");
             return;
         }
-        String json = gson.toJson(messageObj);
+        String json = GSON.toJson(messageObj);
         for (Session session : Server.gameSessionsMap.keySet()) {
             if (Server.gameSessionsMap.get(session).equals(gameID)) {
                 if (includeSender || !session.equals(sender)) {
@@ -237,7 +237,7 @@ public class WebsocketHandler {
         error.put("serverMessageType", ServerMessage.ServerMessageType.ERROR);
         error.put("errorMessage", errorMessage);
         try {
-            session.getRemote().sendString(gson.toJson(error));
+            session.getRemote().sendString(GSON.toJson(error));
         } catch (IOException ex) {
             System.err.println("Error sending error message: " + ex.getMessage());
         }
